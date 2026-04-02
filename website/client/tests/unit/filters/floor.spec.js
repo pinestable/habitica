@@ -1,0 +1,9 @@
+import { describe, expect, test } from 'vitest';
+import floorFilter from '@/filters/floor';
+
+describe('floor filter', () => {
+  test('can floor a decimal number', () => {
+    expect(floorFilter(4.567)).to.equal(4.56);
+    expect(floorFilter(4.562)).to.equal(4.56);
+  });
+});

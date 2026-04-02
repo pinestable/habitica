@@ -1,0 +1,15 @@
+{
+    "rebirthNew": "Reenkarnasyon: Yeni Bir Maceraya Yelken Aç!",
+    "rebirthUnlock": "Reenkarnasyon Küresi kullanmaya hak kazandın! Bu özel eşya sayesinde tüm görevlerin, başarıların ve hayvanların elinde kalmak kaydıyla 1. seviyeden yeni bir oyuna başlayabilirsin. Eğer Habitica'da yapılabilecek her şeyi bitirdiğini düşünüyorsan ya da yepyeni bir karakter oynama heyecanını tekrar yaşamak istiyorsan reenkarnasyonu deneyebilirsin!",
+    "rebirthAchievement": "Yeni bir maceraya başladın! Bu, senin <%= number %>. yeniden doğuşun. Ulaştığın en yüksek seviye <%= level %>. Bu başarı madalyasından bir tane daha kazanabilmek için, yeni maceranda bu seviyeden daha yukarısına ulaşmalısın!",
+    "rebirthAchievement100": "Yeni bir maceraya başladın! Bu, senin <%= number %>. yeniden doğuşun. Ulaştığın en yüksek seviye 100'ün üzerinde. Bu başarı madalyasından bir tane daha kazanabilmek için, yeni maceranda da en az 100. seviyeye ulaşmalısın!",
+    "rebirthBegan": "Yeni Bir Maceraya Başladı",
+    "rebirthText": "<%= rebirths %> Defa Yeni Maceraya Başladı",
+    "rebirthOrb": "Reenkarnasyon Küresini <%= level %> seviyesine ulaştıktan sonra baştan başlamak için kullandı.",
+    "rebirthOrb100": "100 ya da daha yüksek bir seviyeye ulaştıktan sonra Reenkarnasyon Küresi kullanarak baştan başladı.",
+    "rebirthOrbNoLevel": "Reenkarnasyon Küresini baştan başlamak için kullandı.",
+    "rebirthPop": "Karakterinizi anında Seviye 1 Savaşçı olarak sıfırlayın, ancak başarılarınızı, koleksiyonlarınızı ve ekipmanınızı koruyun. Görevleriniz ve geçmişi kalacak ancak sarıya sıfırlanacaktır. Sadece aktif Zorluklar ve Grup Planlarına ait görevlerinizi hariç tutarak, tüm serileriniz silinecektir. Altın, Deneyim, Mana ve tüm Yeteneklerin etkileri kaldırılacaktır. Tüm bunlar hemen geçerli olacaktır.",
+    "rebirthName": "Reenkarnasyon Küresi",
+    "rebirthComplete": "Yeniden doğdun!",
+    "nextFreeRebirth": "<strong><%= days %> gün</strong> kaldı <strong>ÜCRETSİZ</strong> Yeniden Doğuş Orbu için"
+}

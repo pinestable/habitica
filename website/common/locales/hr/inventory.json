@@ -1,0 +1,10 @@
+{
+    "noItemsAvailableForType": "Nemate <%= type %>.",
+    "foodItemType": "Hrana za Ljubimce",
+    "eggsItemType": "Jaja",
+    "hatchingPotionsItemType": "Napitci za izlijeganje",
+    "specialItemType": "Posebni Predmeti",
+    "lockedItem": "Zaključani Predmet",
+    "petAndMount": "Ljubimci i Životinje za jahanje",
+    "allItems": "Svi predmeti"
+}

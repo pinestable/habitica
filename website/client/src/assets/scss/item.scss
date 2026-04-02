@@ -1,0 +1,106 @@
+// TODO move to item component?
+
+.item, .item-wrapper, .item > div > div {
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.items > div {
+  display: inline-block;
+  margin-right: 24px;
+}
+
+.item-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 12px;
+
+  &:focus {
+    outline: 2px solid $purple-400;
+    border-radius: 2px;
+  }
+
+  &:hover {
+    box-shadow: 0 3px 6px 0 rgba($black, 0.16), 0 3px 6px 0 rgba($black, 0.24);
+    border-radius: 4px;
+  }
+}
+
+.items-one-line .item-wrapper {
+  margin-bottom: 8px;
+}
+
+.item {
+  position: relative;
+  width: 94px;
+  height: 92px;
+  border-radius: 4px;
+  background: $white;
+  box-shadow: 0 1px 3px 0 rgba($black, 0.12), 0 1px 2px 0 rgba($black, 0.24);
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &-empty {
+    box-shadow: none;
+    cursor: auto;
+  }
+
+  &-active {
+    background: $purple-500;
+  }
+
+  &.highlight {
+    box-shadow: 0 0 8px 8px rgba($black, 0.16), 0 5px 10px 0 rgba($black, 0.12) !important;
+  }
+
+  &.highlight-border {
+    border-color: $purple-500;
+  }
+}
+
+.flat {
+  .item {
+    box-shadow: none;
+    border: none;
+  }
+
+  .item-wrapper:hover {
+    box-shadow: none;
+  }
+}
+
+.bordered-item .item {
+  background: $gray-700 !important;
+  margin: 0 auto;
+}
+
+.drawer-content .item.item-empty:hover {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.item .item-content {
+  margin: auto;
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.item-label {
+  display: block;
+  width: 94px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.33;
+  text-align: center;
+  color: $gray-400;
+  margin-top: 4px;
+}
+
+.questPopover {
+  min-width: 200px;
+}

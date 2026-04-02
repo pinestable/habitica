@@ -1,0 +1,17 @@
+import { describe, expect, test } from 'vitest';
+import generateStore from '@/store';
+
+describe('getTagsFor getter', () => {
+  test('returns the tags for a task', () => {
+    const store = generateStore();
+    store.state.user.data = {
+      tags: [
+        { id: 1, name: 'tag 1' },
+        { id: 2, name: 'tag 2' },
+      ],
+    };
+
+    const task = { tags: [2] };
+    expect(store.getters['tasks:getTagsFor'](task)).to.deep.equal(['tag 2']);
+  });
+});

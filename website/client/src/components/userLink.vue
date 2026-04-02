@@ -1,0 +1,171 @@
+<template>
+  <router-link
+    v-if="displayName"
+    v-b-tooltip.hover.top="tierTitle"
+    class="leader user-link d-flex"
+    :to="{'name': 'userProfile', 'params': {'userId': id}}"
+    :class="levelStyle()"
+  >
+    {{ displayName }}
+    <div
+      class="svg-icon icon-12"
+      :class="{ 'margin-bump': context === 'profile' }"
+      v-html="tierIcon()"
+    ></div>
+    <div
+      v-if="showBuffed"
+      v-b-tooltip.hover.bottom="$t('buffed')"
+      class="is-buffed ml-2 d-flex align-items-center"
+    >
+      <div
+        class="svg-icon m-auto"
+        v-html="icons.buff"
+      ></div>
+    </div>
+  </router-link>
+</template>
+
+<style scoped lang="scss">
+  @import '@/assets/scss/colors.scss';
+
+  .user-link { // this is the user name
+    font-weight: bold;
+    margin-bottom: 0;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.71;
+    display: inline-flex !important;
+
+    &.no-tier {
+      color: $gray-50;
+    }
+
+    &[class*="tier"] .svg-icon {
+      margin-top: 5px;
+
+      &.margin-bump {
+        margin-top: 7px;
+      }
+    }
+
+    &.npc .svg-icon {
+      margin-top: 4px;
+    }
+
+    .svg-icon {
+      margin-left: 6px;
+
+      &:empty {
+        display: none;
+      }
+    }
+  }
+
+  .is-buffed {
+    width: 20px;
+    height: 20px;
+    background: $header-dark-background;
+    display: inline-block;
+    margin-top: 2px;
+
+    .svg-icon {
+      display: block;
+      width: 10px;
+      height: 12px;
+      margin: 0 auto;
+    }
+  }
+</style>
+
+<script>
+
+import achievementsLib from '@/../../common/script/libs/achievements';
+import styleHelper from '@/mixins/styleHelper';
+
+import tier1 from '@/assets/svg/tier-1.svg?raw';
+import tier2 from '@/assets/svg/tier-2.svg?raw';
+import tier3 from '@/assets/svg/tier-3.svg?raw';
+import tier4 from '@/assets/svg/tier-4.svg?raw';
+import tier5 from '@/assets/svg/tier-5.svg?raw';
+import tier6 from '@/assets/svg/tier-6.svg?raw';
+import tier7 from '@/assets/svg/tier-7.svg?raw';
+import tier8 from '@/assets/svg/tier-mod.svg?raw';
+import tier9 from '@/assets/svg/tier-staff.svg?raw';
+import tierNPC from '@/assets/svg/tier-npc.svg?raw';
+import buffIcon from '@/assets/svg/buff.svg?raw';
+
+export default {
+  mixins: [styleHelper],
+  props: [
+    'user',
+    'userId',
+    'name',
+    'backer',
+    'contributor',
+    'hideTooltip',
+    'showBuffed',
+    'context',
+  ],
+  data () {
+    return {
+      icons: Object.freeze({
+        tier1,
+        tier2,
+        tier3,
+        tier4,
+        tier5,
+        tier6,
+        tier7,
+        tier8,
+        tier9,
+        tierNPC,
+        buff: buffIcon,
+      }),
+    };
+  },
+  computed: {
+    displayName () {
+      if (this.name) {
+        return this.name;
+      } if (this.user && this.user.profile) {
+        return this.user.profile.name;
+      }
+      return null;
+    },
+    level () {
+      if (this.contributor) {
+        return this.contributor.level;
+      } if (this.user && this.user.contributor) {
+        return this.user.contributor.level;
+      }
+      return 0;
+    },
+    isNPC () {
+      if (this.backer) {
+        return this.backer.tier === 800;
+      } if (this.user && this.user.backer) {
+        return this.user.backer.tier === 800;
+      }
+
+      return false;
+    },
+    id () {
+      return this.userId || this.user._id;
+    },
+  },
+  methods: {
+    tierIcon () {
+      if (this.isNPC) {
+        return this.icons.tierNPC;
+      }
+      return this.icons[`tier${this.level}`];
+    },
+    tierTitle () {
+      return this.hideTooltip ? '' : achievementsLib.getContribText(this.contributor, this.isNPC) || '';
+    },
+    levelStyle () {
+      return `${this.userLevelStyleFromLevel(this.level, this.isNPC)}`;
+    },
+  },
+};
+</script>
