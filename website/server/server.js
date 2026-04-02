@@ -17,8 +17,6 @@ import './libs/setupPassport';
 import './libs/setupFirebase';
 
 // Load some schemas & models
-import './models/challenge';
-import './models/group';
 import './models/user';
 import SERVER_STATUS from './libs/serverStatus';
 

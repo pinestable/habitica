@@ -11,13 +11,9 @@ import { authAsCredentialsState, LOCALSTORAGE_AUTH_KEY, setUpAxios } from '@/lib
 import actions from './actions';
 import getters from './getters';
 
-const IS_TEST = import.meta.env.NODE_ENV === 'test'; // eslint-disable-line no-process-env
+const IS_TEST = import.meta.env.NODE_ENV === 'test';
 
-// Load user auth parameters and determine if it's logged in
-// before trying to load data
 let isUserLoggedIn = false;
-
-// eg, -240 - this will be converted on server as (offset/60)
 const browserTimezoneUtcOffset = moment().utcOffset();
 
 axios.defaults.headers.common['x-client'] = 'habitica-web';
@@ -38,10 +34,6 @@ if (i18nData) {
   selectedLanguage = i18nData.language;
 }
 
-// Export a function that generates the store and not the store directly
-// so that we can regenerate it multiple times for testing, when not testing
-// always export the same route
-
 let existingStore;
 export default function clientStore () {
   if (!IS_TEST && existingStore) return existingStore;
@@ -53,52 +45,26 @@ export default function clientStore () {
       serverAppVersion: null,
       title: 'Habitica',
       isUserLoggedIn,
-      // Means the user and the user's tasks are ready
-      // @TODO use store.user.loaded since it's an async resource?
       isUserLoaded: false,
-      isAmazonReady: false, // Whether the Amazon Payments lib can be used
       user: asyncResourceFactory(),
-      // Keep track of the ids of notifications that have been removed
-      // to make sure they don't get shown again. It happened due to concurrent requests
-      // which in some cases could result in a read notification showing up again
-      // see https://github.com/HabitRPG/habitica/issues/9242
       notificationsRemoved: [],
       worldState: asyncResourceFactory(),
       credentials: isUserLoggedIn ? authAsCredentialsState(AUTH_SETTINGS) : {},
-      // store the timezone offset in case it's different than the one in
-      // user.preferences.timezoneOffset and change it after the user is synced
-      // in app.vue
       browserTimezoneUtcOffset,
-      tasks: asyncResourceFactory(), // user tasks
-      // @TODO use asyncresource?
+      tasks: asyncResourceFactory(),
       completedTodosStatus: 'NOT_LOADED',
-      party: asyncResourceFactory(),
-      partyMembers: asyncResourceFactory(),
       shops: {
         market: asyncResourceFactory(),
         quests: asyncResourceFactory(),
         seasonal: asyncResourceFactory(),
         'time-travelers': asyncResourceFactory(),
       },
-      myGuilds: [],
-      groupFormOptions: {
-        creatingParty: false,
-        groupId: '',
-      },
       avatarEditorOptions: {
         editingUser: false,
         startingPage: '',
         subpage: '',
       },
-      challengeOptions: {
-        cloning: false,
-        tasksToClone: {},
-        workingChallenge: {},
-      },
-      editingGroup: {}, // @TODO move to local state
-      // content data, frozen to prevent Vue from modifying it since it's static and never changes
-      // @TODO apply freezing to the entire codebase (the server) and not only to the client side?
-      // NOTE this takes about 10-15ms on a fast computer
+      // content data, frozen to prevent Vue from modifying it
       content: deepFreeze(content),
       constants: deepFreeze({ ...commonConstants, DAY_MAPPING }),
       i18n: deepFreeze({
@@ -106,13 +72,6 @@ export default function clientStore () {
         selectedLanguage,
       }),
       hideHeader: false,
-      memberModalOptions: {
-        viewingMembers: [],
-        groupId: '',
-        challengeId: '',
-        group: {},
-        loading: false,
-      },
       openedItemRows: [],
       spellOptions: {
         castingSpell: false,
@@ -128,11 +87,9 @@ export default function clientStore () {
         npc: '',
       },
       profileUser: {},
-      upgradingGroup: {},
       notificationStore: [],
       modalStack: [],
       equipmentDrawerOpen: true,
-      groupPlans: asyncResourceFactory(),
       isRunningYesterdailies: false,
       privateMessageOptions: {
         userIdToMessage: '',
