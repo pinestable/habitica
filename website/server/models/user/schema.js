@@ -8,33 +8,9 @@ import {
   RESTRICTED_EMAIL_DOMAINS,
   isRestrictedEmailDomain,
 } from '../../libs/auth/utils';
-import { schema as PushDeviceSchema } from '../pushDevice';
-import { schema as SubscriptionPlanSchema } from '../subscriptionPlan';
 import { schema as TagSchema } from '../tag';
 import { schema as UserNotificationSchema } from '../userNotification';
 import { schema as WebhookSchema } from '../webhook';
-import { model as Blocker } from '../blocker';
-
-const BLOCKED_EMAILS = [];
-
-Blocker.watchBlockers({
-  type: 'email',
-  area: 'full',
-}, {
-  initial: true,
-}).on('change', async change => {
-  const { operation, blocker: { value } } = change;
-  if (operation === 'add') {
-    if (value && !BLOCKED_EMAILS.includes(value)) {
-      BLOCKED_EMAILS.push(value);
-    }
-  } else if (operation === 'delete') {
-    const index = BLOCKED_EMAILS.indexOf(value);
-    if (index !== -1) {
-      BLOCKED_EMAILS.splice(index, 1);
-    }
-  }
-});
 
 // User schema definition
 export const UserSchema = new Schema({
@@ -65,12 +41,6 @@ export const UserSchema = new Schema({
             return !isRestrictedEmailDomain(email);
           },
           message: shared.i18n.t('invalidEmailDomain', { domains: RESTRICTED_EMAIL_DOMAINS.join(', ') }),
-        }, {
-          validator (email) {
-            const lowercaseEmail = email.toLowerCase();
-            return BLOCKED_EMAILS.every(block => lowercaseEmail.indexOf(block) === -1);
-          },
-          message: shared.i18n.t('emailBlockedRegistration'),
         }],
       },
       username: {
@@ -251,7 +221,7 @@ export const UserSchema = new Schema({
     txnCount: { $type: Number, default: 0 },
     mobileChat: Boolean,
     plan: {
-      $type: SubscriptionPlanSchema,
+      $type: Schema.Types.Mixed,
       default: () => ({}),
     },
   },
@@ -266,15 +236,10 @@ export const UserSchema = new Schema({
       classes: { $type: Number, default: -1 },
       stats: { $type: Number, default: -1 },
       tavern: { $type: Number, default: -1 },
-      party: { $type: Number, default: -1 },
-      guilds: { $type: Number, default: -1 },
-      challenges: { $type: Number, default: -1 },
       market: { $type: Number, default: -1 },
       pets: { $type: Number, default: -1 },
       mounts: { $type: Number, default: -1 },
-      hall: { $type: Number, default: -1 },
       equipment: { $type: Number, default: -1 },
-      groupPlans: { $type: Number, default: -1 },
     },
     tutorial: {
       common: {
@@ -282,7 +247,6 @@ export const UserSchema = new Schema({
         dailies: { $type: Boolean, default: false },
         todos: { $type: Boolean, default: false },
         rewards: { $type: Boolean, default: false },
-        party: { $type: Boolean, default: false },
         pets: { $type: Boolean, default: false },
         gems: { $type: Boolean, default: false },
         skills: { $type: Boolean, default: false },
@@ -299,8 +263,6 @@ export const UserSchema = new Schema({
         editTask: { $type: Boolean, default: false },
         deleteTask: { $type: Boolean, default: false },
         filterTask: { $type: Boolean, default: false },
-        groupPets: { $type: Boolean, default: false },
-        inviteParty: { $type: Boolean, default: false },
         reorderTask: { $type: Boolean, default: false },
       },
     },
@@ -479,70 +441,6 @@ export const UserSchema = new Schema({
     default: () => ({}),
   },
 
-  challenges: [{ $type: String, ref: 'Challenge', validate: [v => validator.isUUID(v), 'Invalid uuid for user challenges.'] }],
-
-  invitations: {
-    // Using an array without validation because otherwise mongoose
-    // treat this as a subdocument and applies _id by default
-    // Schema is (id, name, inviter, publicGuild)
-    // TODO one way to fix is https://mongoosejs.com/docs/guide.html#_id
-    guilds: { $type: Array, default: () => [] },
-    // Using a Mixed type because otherwise user.invitations.party = {}
-    // to reset invitation, causes validation to fail TODO
-    // schema is the same as for guild invitations (id, name, inviter)
-    party: {
-      $type: Schema.Types.Mixed,
-      default: () => ({}),
-    },
-    parties: [{
-      id: {
-        $type: String,
-        ref: 'Group',
-        required: true,
-        validate: [v => validator.isUUID(v), 'Invalid uuid for user invitation party id.'],
-      },
-      name: {
-        $type: String,
-        required: true,
-      },
-      inviter: {
-        $type: String,
-        ref: 'User',
-        required: true,
-        validate: [v => validator.isUUID(v), 'Invalid uuid for user invitation inviter id.'],
-      },
-      cancelledPlan: {
-        $type: Boolean,
-      },
-    }],
-  },
-
-  guilds: [{ $type: String, ref: 'Group', validate: [v => validator.isUUID(v), 'Invalid uuid for user guild.'] }],
-
-  party: {
-    _id: { $type: String, validate: [v => validator.isUUID(v), 'Invalid uuid for user party.'], ref: 'Group' },
-    order: { $type: String, default: 'level' },
-    orderAscending: { $type: String, default: 'ascending' },
-    quest: {
-      key: String,
-      progress: {
-        up: { $type: Number, default: 0 },
-        down: { $type: Number, default: 0 },
-        collect: {
-          $type: Schema.Types.Mixed,
-          default: () => ({}),
-        },
-        collectedItems: { $type: Number, default: 0 },
-      },
-      // When quest is done, we move it from key => completed,
-      // and it's a one-time flag (for modal) that they unset by clicking "ok" in browser
-      completed: String,
-      // Set to true when invite is pending, set to false when quest
-      // invite is accepted or rejected, quest starts, or quest is cancelled
-      RSVPNeeded: { $type: Boolean, default: false },
-    },
-    seeking: Date,
-  },
   preferences: {
     dayStart: {
       $type: Number, default: 0, min: 0, max: 23,
@@ -593,14 +491,8 @@ export const UserSchema = new Schema({
     emailNotifications: {
       unsubscribeFromAll: { $type: Boolean, default: false },
       newPM: { $type: Boolean, default: true },
-      kickedGroup: { $type: Boolean, default: true },
-      wonChallenge: { $type: Boolean, default: true },
       giftedGems: { $type: Boolean, default: true },
       giftedSubscription: { $type: Boolean, default: true },
-      invitedParty: { $type: Boolean, default: true },
-      invitedGuild: { $type: Boolean, default: true },
-      questStarted: { $type: Boolean, default: true },
-      invitedQuest: { $type: Boolean, default: true },
       // remindersToLogin: {$type: Boolean, default: true},
       // importantAnnouncements are in fact the recapture emails
       importantAnnouncements: { $type: Boolean, default: true },
@@ -610,23 +502,6 @@ export const UserSchema = new Schema({
       subscriptionReminders: { $type: Boolean, default: true },
       contentRelease: { $type: Boolean, default: true },
     },
-    pushNotifications: {
-      unsubscribeFromAll: { $type: Boolean, default: false },
-      newPM: { $type: Boolean, default: true },
-      wonChallenge: { $type: Boolean, default: true },
-      giftedGems: { $type: Boolean, default: true },
-      giftedSubscription: { $type: Boolean, default: true },
-      invitedParty: { $type: Boolean, default: true },
-      invitedGuild: { $type: Boolean, default: true },
-      questStarted: { $type: Boolean, default: true },
-      invitedQuest: { $type: Boolean, default: true },
-      majorUpdates: { $type: Boolean, default: true },
-      mentionParty: { $type: Boolean, default: true },
-      mentionJoinedGuild: { $type: Boolean, default: true },
-      mentionUnjoinedGuild: { $type: Boolean, default: true },
-      partyActivity: { $type: Boolean, default: true },
-      contentRelease: { $type: Boolean, default: true },
-    },
     suppressModals: {
       levelUp: { $type: Boolean, default: false },
       hatchPet: { $type: Boolean, default: false },
@@ -634,11 +509,6 @@ export const UserSchema = new Schema({
       streak: { $type: Boolean, default: false },
     },
     tasks: {
-      groupByChallenge: { $type: Boolean, default: false }, // @TODO remove? not used
-      confirmScoreNotes: { $type: Boolean, default: false }, // @TODO remove? not used
-      mirrorGroupTasks: [
-        { $type: String, validate: [v => validator.isUUID(v), 'Invalid group UUID.'], ref: 'Group' },
-      ],
       activeFilter: {
         habit: { $type: String, default: 'all' },
         daily: { $type: String, default: 'all' },
@@ -727,7 +597,6 @@ export const UserSchema = new Schema({
     $type: Schema.Types.Mixed,
     default: () => ({}),
   },
-  pushDevices: [PushDeviceSchema],
   _ABtests: {
     $type: Schema.Types.Mixed,
     default: () => ({}),

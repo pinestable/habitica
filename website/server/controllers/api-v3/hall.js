@@ -3,19 +3,15 @@ import validator from 'validator';
 import { authWithHeaders } from '../../middlewares/auth';
 import { ensurePermission } from '../../middlewares/ensureAccessRight';
 import { model as User } from '../../models/user';
-import { model as Group } from '../../models/group';
 import common from '../../../common';
 import {
   NotFound,
-  BadRequest,
 } from '../../libs/errors';
 import { apiError } from '../../libs/apiError';
 import {
   validateItemPath,
   castItemVal,
 } from '../../libs/items/utils';
-import { addSubToGroupUser } from '../../libs/payments/groupPayments';
-import { leaveGroup } from '../../libs/groups';
 
 const api = {};
 
@@ -43,22 +39,6 @@ const api = {};
  *       "backer": {
  *         "tier": 800,
  *         "npc": "Beast Master"
- *       }
- *     },
- *     {
- *       "_id": "9da65443-ed43-4c21-804f-d260c1361596",
- *       "profile": {
- *         "name": "ʎǝlᴉɐq s,┴I"
- *       },
- *       "contributor": {
- *         "text": "Pollen Purveyor",
- *         "admin": true,
- *         "level": 8
- *       },
- *       "backer": {
- *         "npc": "Town Crier",
- *         "tier": 800,
- *         "tokensApplied": true
  *       }
  *     }
  *   ]
@@ -149,12 +129,9 @@ api.getHeroes = {
 // Note, while the following routes are called getHero / updateHero
 // they can be used by admins to get/update any user
 
-const heroAdminFields = 'auth balance contributor flags items lastCron party preferences profile purchased secret permissions achievements stats';
-const heroAdminFieldsToFetch = heroAdminFields; // these variables will make more sense when...
-const heroAdminFieldsToShow = heroAdminFields; // ... apiTokenObscured is added
-
-const heroPartyAdminFields = 'balance challengeCount leader leaderOnly memberCount purchased quest';
-// must never include Party name, description, summary, leaderMessage
+const heroAdminFields = 'auth balance contributor flags items lastCron preferences profile purchased secret permissions achievements stats';
+const heroAdminFieldsToFetch = heroAdminFields;
+const heroAdminFieldsToShow = heroAdminFields;
 
 /**
  * @api {get} /api/v3/hall/heroes/:heroId Get any user ("hero") given the UUID or Username
@@ -202,7 +179,7 @@ api.getHero = {
     // if we didn't pass minimize: true it would have returned all fields as empty
     if (!heroRes.contributor) heroRes.contributor = {};
 
-    heroRes.secret = hero.getSecretData();
+    heroRes.secret=hero.secret;
     heroRes.profile.flags = hero.getFlagData();
 
     res.respond(200, heroRes);
@@ -334,19 +311,6 @@ api.updateHero = {
       }
       if (plan.hourglassPromoReceived) {
         hero.purchased.plan.hourglassPromoReceived = plan.hourglassPromoReceived;
-      }
-
-      if (plan.convertToGroupPlan) {
-        const groupID = plan.convertToGroupPlan;
-        const group = await Group.getGroup({ user: hero, groupId: groupID });
-        if (!group) throw new NotFound(res.t('groupNotFound'));
-        if (group.hasNotCancelled()) {
-          hero.purchased.plan.paymentMethod = 'groupPlan';
-          await addSubToGroupUser(hero, group);
-          await group.updateGroupPlan();
-        } else {
-          throw new BadRequest('Group does not have a plan');
-        }
       }
     }
 
@@ -497,7 +461,7 @@ api.updateHero = {
     }
 
     if (updateData.changeApiToken) {
-      hero.apiToken = common.uuid();
+      hero.apiToken=comm();
     }
 
     if (updateData.resetCron) {
@@ -509,131 +473,14 @@ api.updateHero = {
 
     const savedHero = await hero.save();
 
-    if (updateData.removeFromParty) {
-      await leaveGroup({
-        user: savedHero,
-        groupId: savedHero.party._id,
-        res,
-        keep: false,
-        keepChallenges: false,
-      });
-    }
-
     const heroJSON = savedHero.toJSON();
-    heroJSON.secret = savedHero.getSecretData();
+    heroJSON.secret=savedHero.secret;
     const responseHero = { _id: heroJSON._id }; // only respond with important fields
     heroAdminFieldsToShow.split(' ').forEach(field => {
       _.set(responseHero, field, _.get(heroJSON, field));
     });
 
     res.respond(200, responseHero);
-  },
-};
-
-/**
- * @api {get} /api/v3/hall/heroes/party/:groupId Get any Party given its ID
- * @apiParam (Path) {UUID} groupId party's group ID
- * @apiName GetHeroParty
- * @apiGroup Hall
- * @apiPermission userSupport
- *
- * @apiDescription Returns some basic information about a given Party,
- * to assist admins with user support.
- *
- * @apiSuccess {Object} data The party object (contains computed fields
- * that are not in the Group model)
- *
- * @apiUse NoAuthHeaders
- * @apiUse NoAccount
- * @apiUse NoUser
- * @apiUse NoPrivs
- * @apiUse groupIdRequired
- * @apiUse GroupNotFound
- */
-api.getHeroParty = { // @TODO XXX add tests
-  method: 'GET',
-  url: '/hall/heroes/party/:groupId',
-  middlewares: [authWithHeaders(), ensurePermission('userSupport')],
-  async handler (req, res) {
-    req.checkParams('groupId', apiError('groupIdRequired')).notEmpty().isUUID();
-
-    const validationErrors = req.validationErrors();
-    if (validationErrors) throw validationErrors;
-
-    const { groupId } = req.params;
-
-    const query = { _id: groupId, type: 'party' };
-
-    const party = await Group
-      .findOne(query)
-      .select(heroPartyAdminFields)
-      .exec();
-
-    if (!party) throw new NotFound(apiError('groupWithIDNotFound', { groupId }));
-    const partyRes = party.toJSON();
-    res.respond(200, partyRes);
-  },
-};
-
-/**
- * @api {get} /api/v3/hall/heroes/:heroId Get Group Plans for a user
- * @apiParam (Path) {UUID} groupId party's group ID
- * @apiName GetHeroGroupPlans
- * @apiGroup Hall
- * @apiPermission userSupport
- *
- * @apiDescription Returns some basic information about group plans,
- * to assist admins with user support.
- *
- * @apiSuccess {Object} data The active group plans
- *
- * @apiUse NoAuthHeaders
- * @apiUse NoAccount
- * @apiUse NoUser
- * @apiUse NoPrivs
- */
-api.getHeroGroupPlans = {
-  method: 'GET',
-  url: '/hall/heroes/:heroId/group-plans',
-  middlewares: [authWithHeaders(), ensurePermission('userSupport')],
-  async handler (req, res) {
-    req.checkParams('heroId', res.t('heroIdRequired')).notEmpty();
-
-    const validationErrors = req.validationErrors();
-    if (validationErrors) throw validationErrors;
-
-    const { heroId } = req.params;
-
-    let query;
-    if (validator.isUUID(heroId)) {
-      query = { _id: heroId };
-    } else {
-      query = { 'auth.local.lowerCaseUsername': heroId.toLowerCase() };
-    }
-
-    const hero = await User
-      .findOne(query)
-      .select('guilds party')
-      .exec();
-
-    if (!hero) throw new NotFound(res.t('userWithIDNotFound', { userId: heroId }));
-    const heroGroups = hero.getGroups();
-
-    if (heroGroups.length === 0) {
-      res.respond(200, []);
-      return;
-    }
-
-    const groups = await Group
-      .find({
-        _id: { $in: heroGroups },
-      })
-      .select('leaderOnly leader purchased name managers memberCount')
-      .exec();
-
-    const groupPlans = groups.filter(group => group.hasActiveGroupPlan());
-
-    res.respond(200, groupPlans);
   },
 };
 
