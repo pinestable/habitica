@@ -5,7 +5,6 @@ import { NotFoundPage } from './shared-route-imports';
 const StaticWrapper = () => import('@/components/static/staticWrapper');
 const HomePage = () => import('@/components/static/home');
 
-const AppleRedirectPage = () => import('@/components/static/appleRedirect');
 const ChatSunsetFaq = () => import('@/components/static/chatSunsetFaq');
 const ClearBrowserDataPage = () => import('@/components/static/clearBrowserData');
 const CommunityGuidelinesPage = () => import('@/components/static/communityGuidelines');
@@ -30,9 +29,6 @@ export const STATIC_ROUTES = {
   path: '/static',
   component: StaticWrapper,
   children: [
-    {
-      name: 'appleRedirect', path: 'apple-redirect', component: AppleRedirectPage, meta: { requiresLogin: false },
-    },
     {
       name: 'clearBrowserData', path: 'clear-browser-data', component: ClearBrowserDataPage, meta: { requiresLogin: false },
     },

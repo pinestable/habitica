@@ -1,8 +1,6 @@
 <template>
   <div>
-    <creator-intro />
     <profileModal />
-    <report-flag-modal />
     <report-member-modal />
     <send-gift-modal />
     <select-user-modal />
@@ -794,10 +792,8 @@ import svgHourglasses from '@/assets/svg/hourglass.svg?raw';
 import chevronDownIcon from '@/assets/svg/chevron-down.svg?raw';
 import melior from '@/assets/svg/melior.svg?raw';
 
-import creatorIntro from '../creatorIntro';
 import notificationMenu from './notificationsDropdown';
 import profileModal from '../userMenu/profileModal';
-import reportFlagModal from '../chat/reportFlagModal';
 import reportMemberModal from '../members/reportMemberModal';
 import sendGiftModal from '@/components/payments/sendGiftModal';
 import selectUserModal from '@/components/payments/selectUserModal';
@@ -808,10 +804,8 @@ import { userStateMixin } from '../../mixins/userState';
 
 export default {
   components: {
-    creatorIntro,
     notificationMenu,
     profileModal,
-    reportFlagModal,
     reportMemberModal,
     sendGiftModal,
     selectUserModal,

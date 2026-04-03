@@ -94,31 +94,6 @@
                   {{ $t('continue') }}
                 </button>
               </form>
-              <div class="strike">
-                <span>{{ $t('or') }}</span>
-              </div>
-              <div class="text-center">
-                <button
-                  class="social-button"
-                  @click="proceed('google')"
-                >
-                  <div
-                    class="svg-icon social-icon"
-                    v-html="icons.googleIcon"
-                  ></div>
-                  <span>{{ $t('signUpWithSocial', {social: 'Google'}) }}</span>
-                </button>
-                <button
-                  class="social-button"
-                  @click="proceed('apple')"
-                >
-                  <div
-                    class="svg svg-icon social-icon apple-icon color"
-                    v-html="icons.appleIcon"
-                  ></div>
-                  <span>{{ $t('signUpWithSocial', {social: 'Apple'}) }}</span>
-                </button>
-              </div>
             </div>
           </div>
           <div class="col-12">
@@ -446,77 +421,6 @@
       font-size: 32px;
     }
 
-    .social-button {
-      border-radius: 2px;
-      border: solid 2px $purple-500;
-      width: 100%;
-      min-height: 40px;
-      padding: .5em;
-      background: transparent;
-      margin-bottom: .5em;
-      color: $purple-500;
-      transition: .5s;
-
-      span {
-        font-weight: 700;
-        transition: none;
-      }
-    }
-
-    .social-button:hover {
-      cursor: pointer;
-      border-color: $white;
-      color: $white;
-    }
-
-    .social-icon {
-      margin-right: 1em;
-      width: 18px;
-      height: 18px;
-      display: inline-block;
-      vertical-align: top;
-      margin-top: .1em;
-    }
-
-    .apple-icon {
-      margin-top: -1px;
-      color: $white;
-    }
-
-    .strike {
-      display: block;
-      text-align: center;
-      overflow: hidden;
-      white-space: nowrap;
-      margin-top: 1.5em;
-      margin-bottom: 1.5em;
-    }
-
-    .strike > span {
-      position: relative;
-      display: inline-block;
-      line-height: 1.14;
-    }
-
-    .strike > span:before,
-    .strike > span:after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      width: 9999px;
-      height: 1px;
-      background: #fff;
-    }
-
-    .strike > span:before {
-      right: 100%;
-      margin-right: 15px;
-    }
-
-    .strike > span:after {
-      left: 100%;
-      margin-left: 15px;
-    }
 
     .form {
       padding-top: 1em;
@@ -738,8 +642,6 @@ import pixelHorizontal from '@/assets/images/home/pixel-horizontal.svg?raw';
 import pixelHorizontal2 from '@/assets/images/home/pixel-horizontal-2.svg?raw';
 import pixelHorizontal3 from '@/assets/images/home/pixel-horizontal-3.svg?raw';
 import facebookSquareIcon from '@/assets/svg/facebook-square.svg?raw';
-import googleIcon from '@/assets/svg/google.svg?raw';
-import appleIcon from '@/assets/svg/apple_black.svg?raw';
 import cnet from '@/assets/svg/cnet.svg?raw';
 import fastCompany from '@/assets/svg/fast-company.svg?raw';
 import discover from '@/assets/images/home/discover.svg?raw';
@@ -765,8 +667,6 @@ export default {
         pixelHorizontal2,
         pixelHorizontal3,
         facebookIcon: facebookSquareIcon,
-        googleIcon,
-        appleIcon,
         cnet,
         fastCompany,
         discover,

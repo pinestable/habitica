@@ -105,14 +105,6 @@
           @blur="addChecklistItem($event, false)"
         >
       </div>
-      <emoji-auto-complete
-        ref="emojiAutocomplete"
-        :text="activeFieldText"
-        :textbox="textbox"
-        :coords="mixinData.autoComplete.coords"
-        :caret-position="mixinData.autoComplete.caretPosition"
-        @select="selectedAutocomplete"
-      />
     </b-collapse>
   </div>
 </template>
@@ -128,7 +120,6 @@ import chevronIcon from '@/assets/svg/chevron.svg?raw';
 import gripIcon from '@/assets/svg/grip.svg?raw';
 import checkbox from '@/components/ui/checkbox';
 import lockableLabel from './lockableLabel';
-import emojiAutoComplete from '@/components/chat/emojiAutoComplete';
 import { autoCompleteHelperMixin } from '@/mixins/autoCompleteHelper';
 
 export default {
@@ -137,7 +128,6 @@ export default {
     checkbox,
     draggable,
     lockableLabel,
-    emojiAutoComplete,
   },
   mixins: [autoCompleteHelperMixin],
   props: {

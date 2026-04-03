@@ -416,14 +416,6 @@
                 @keypress.enter="autoCompleteMixinSelectAutocomplete($event)"
                 @keydown.esc="autoCompleteMixinHandleEscape($event)"
               ></textarea>
-              <emoji-auto-complete
-                ref="emojiAutocomplete"
-                :text="editingProfile.blurb"
-                :textbox="textbox"
-                :coords="mixinData.autoComplete.coords"
-                :caret-position="mixinData.autoComplete.caretPosition"
-                @select="selectedAutocomplete"
-              />
               <!-- include ../../shared/formatting-help-->
             </div>
           </div>
@@ -1019,7 +1011,6 @@ import mute from '@/assets/svg/mute.svg?raw';
 import shadowMute from '@/assets/svg/shadow-mute.svg?raw';
 import externalLinks from '../../mixins/externalLinks';
 import { userCustomStateMixin } from '../../mixins/userState';
-import emojiAutoComplete from '@/components/chat/emojiAutoComplete';
 import { autoCompleteHelperMixin } from '@/mixins/autoCompleteHelper';
 // @TODO: EMAILS.COMMUNITY_MANAGER_EMAIL
 const COMMUNITY_MANAGER_EMAIL = 'admin@habitica.com';
@@ -1032,7 +1023,6 @@ export default {
     MemberDetails,
     profileStats,
     toggleSwitch,
-    emojiAutoComplete,
   },
   mixins: [externalLinks, userCustomStateMixin('userLoggedIn'), autoCompleteHelperMixin],
   props: ['userId', 'startingPage'],

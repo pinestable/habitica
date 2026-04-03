@@ -23,14 +23,6 @@
             @keydown.enter="searchEnterHandler($event)"
             @keydown.esc="searchEscHandler($event)"
           />
-          <emoji-auto-complete
-            ref="emojiAutocomplete"
-            :text="search"
-            :textbox="textbox"
-            :coords="mixinData.autoComplete.coords"
-            :caret-position="mixinData.autoComplete.caretPosition"
-            @select="selectedAutocomplete"
-          />
         </div>
 
         <multi-list
@@ -205,7 +197,6 @@ $itemHeight: 2rem;
 import Vue from 'vue';
 import MultiList from '@/components/tasks/modal-controls/multiList';
 import markdownDirective from '@/directives/markdown';
-import emojiAutoComplete from '@/components/chat/emojiAutoComplete';
 import { autoCompleteHelperMixin } from '@/mixins/autoCompleteHelper';
 
 export default {
@@ -214,7 +205,6 @@ export default {
   },
   components: {
     MultiList,
-    emojiAutoComplete,
   },
   mixins: [autoCompleteHelperMixin],
   props: {

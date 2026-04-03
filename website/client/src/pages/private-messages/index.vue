@@ -162,14 +162,6 @@
               @keydown.esc="autoCompleteMixinHandleEscape($event)"
             >
             </textarea>
-            <emoji-auto-complete
-              ref="emojiAutocomplete"
-              :text="newMessage"
-              :textbox="textbox"
-              :coords="mixinData.autoComplete.coords"
-              :caret-position="mixinData.autoComplete.caretPosition"
-              @select="selectedAutocomplete"
-            />
           </div>
           <div
             class="sub-new-message-row d-flex"
@@ -691,7 +683,6 @@ import PmNewMessageStarted from './pm-new-message-started.vue';
 import StartNewConversationInputHeader from './start-new-conversation-input-header.vue';
 import positiveIcon from '@/assets/svg/positive.svg?raw';
 import NotificationMixins from '@/mixins/notifications';
-import emojiAutoComplete from '@/components/chat/emojiAutoComplete';
 import { autoCompleteHelperMixin } from '@/mixins/autoCompleteHelper';
 
 // extract to a shared path
@@ -717,7 +708,6 @@ export default defineComponent({
     toggleSwitch,
     userLink,
     faceAvatar,
-    emojiAutoComplete,
   },
   filters: {
     timeAgo (value) {

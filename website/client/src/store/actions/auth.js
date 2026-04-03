@@ -73,51 +73,6 @@ export async function checkEmail (store, params) {
   return result.data.data;
 }
 
-export async function socialAuth (store, params) {
-  const url = '/api/v4/user/auth/social';
-  const result = await axios.post(url, {
-    allowRegister: params.allowRegister,
-    username: params.username,
-    network: params.auth.network,
-    authResponse: params.auth.authResponse,
-  });
-
-  if (!result.data) {
-    return null;
-  }
-
-  const user = result.data.data;
-
-  saveLocalDataAuth(store, user.id, user.apiToken);
-  return user.id;
-}
-
-export async function appleAuth (store, params) {
-  const url = '/api/v4/user/auth/apple';
-  const result = await axios.get(url, {
-    params: {
-      allowRegister: params.allowRegister,
-      code: params.code,
-      id_token: params.idToken,
-      name: params.name,
-      username: params.username,
-    },
-  });
-
-  if (!result.data) {
-    return null;
-  }
-
-  if (result.data.message && result.data.id_token) {
-    return { idToken: result.data.id_token };
-  }
-
-  const user = result.data.data;
-
-  saveLocalDataAuth(store, user.id, user.apiToken);
-  return { id: user.id };
-}
-
 export function logout (store, options = {}) {
   localStorage.clear();
   sessionStorage.clear();

@@ -1,6 +1,5 @@
 import nconf from 'nconf';
 import shortid from 'short-uuid';
-import url from 'url';
 
 import { NotAuthorized } from '../errors';
 
@@ -24,12 +23,6 @@ export function loginRes (user, req, res) {
       },
     ));
   }
-  const urlPath = url.parse(req.url).pathname;
-  if (req.headers['x-client'] === 'habitica-android' && urlPath.includes('apple')) {
-    // This is a workaround for android not being able to handle sign in with apple better.
-    return res.redirect(`/?id=${user._id}&key=${user.apiToken}&newUser=${user.newUser || false}`);
-  }
-
   const responseData = {
     id: user._id,
     apiToken: user.apiToken,

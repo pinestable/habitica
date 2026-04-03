@@ -112,14 +112,6 @@
           @keypress.enter="autoCompleteMixinSelectAutocomplete($event)"
           @keydown.esc="autoCompleteMixinHandleEscape($event)"
         ></textarea>
-        <emoji-auto-complete
-          ref="emojiAutocomplete"
-          :text="activeFieldText"
-          :textbox="textbox"
-          :coords="mixinData.autoComplete.coords"
-          :caret-position="mixinData.autoComplete.caretPosition"
-          @select="selectedAutocomplete"
-        />
       </div>
     </div>
     <div
@@ -1184,7 +1176,6 @@ import lockableLabel from '@/components/tasks/modal-controls/lockableLabel';
 import selectList from '@/components/ui/selectList';
 
 import syncTask from '../../mixins/syncTask';
-import emojiAutoComplete from '@/components/chat/emojiAutoComplete';
 import { autoCompleteHelperMixin } from '@/mixins/autoCompleteHelper';
 
 import positiveIcon from '@/assets/svg/positive.svg?raw';
@@ -1208,7 +1199,6 @@ export default {
     toggleCheckbox,
     lockableLabel,
     selectList,
-    emojiAutoComplete,
   },
   directives: {
     markdown: markdownDirective,

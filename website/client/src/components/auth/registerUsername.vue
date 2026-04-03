@@ -157,7 +157,6 @@ export default {
   mixins: [sanitizeRedirect],
   data () {
     return {
-      authData: {},
       email: '',
       password: '',
       passwordConfirm: '',
@@ -183,14 +182,11 @@ export default {
     },
   },
   mounted () {
-    if (window.sessionStorage.getItem('apple-token')) {
-      this.registrationMethod = 'apple';
-    } else if (!this.$store.state.registrationOptions.registrationMethod) {
+    if (!this.$store.state.registrationOptions.registrationMethod) {
       this.$router.push('/');
     } else {
       this.registrationMethod = this.$store.state.registrationOptions.registrationMethod;
     }
-    this.authData = this.$store.state.registrationOptions.authData;
     this.email = this.$store.state.registrationOptions.email;
     this.username = this.$store.state.registrationOptions.username;
     this.password = this.$store.state.registrationOptions.password;
@@ -211,41 +207,26 @@ export default {
   },
   methods: {
     async register () {
-      if (this.registrationMethod === 'local') {
-        let groupInvite = '';
-        if (this.$route.query && this.$route.query.p) {
-          groupInvite = this.$route.query.p;
-        }
-
-        if (this.$route.query && this.$route.query.groupInvite) {
-          groupInvite = this.$route.query.groupInvite;
-        }
-
-        await this.$store.dispatch('auth:register', {
-          username: this.username,
-          email: this.email,
-          password: this.password,
-          passwordConfirm: this.passwordConfirm,
-          groupInvite,
-        });
-
-        const redirect = this.sanitizeRedirect(this.$route.query.redirectTo);
-
-        window.location.href = redirect;
-      } else if (this.registrationMethod === 'apple') {
-        await this.$store.dispatch('auth:appleAuth', {
-          idToken: window.sessionStorage.getItem('apple-token'),
-          name: window.sessionStorage.getItem('apple-name'),
-          username: this.username,
-          allowRegister: true,
-        });
-      } else {
-        await this.$store.dispatch('auth:socialAuth', {
-          auth: this.authData,
-          username: this.username,
-        });
+      let groupInvite = '';
+      if (this.$route.query && this.$route.query.p) {
+        groupInvite = this.$route.query.p;
       }
-      window.location.href = '/';
+
+      if (this.$route.query && this.$route.query.groupInvite) {
+        groupInvite = this.$route.query.groupInvite;
+      }
+
+      await this.$store.dispatch('auth:register', {
+        username: this.username,
+        email: this.email,
+        password: this.password,
+        passwordConfirm: this.passwordConfirm,
+        groupInvite,
+      });
+
+      const redirect = this.sanitizeRedirect(this.$route.query.redirectTo);
+
+      window.location.href = redirect;
     },
     // eslint-disable-next-line func-names
     validateUsername: debounce(function (username) {

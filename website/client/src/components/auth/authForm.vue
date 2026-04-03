@@ -1,37 +1,5 @@
 <template>
   <div class="form">
-    <div class="form-group row text-center">
-      <div class="col-12">
-        <div
-          class="btn btn-secondary social-button"
-          @click="socialAuth('google')"
-        >
-          <div
-            class="svg-icon social-icon"
-            v-html="icons.googleIcon"
-          ></div>
-          <span>{{ registering
-            ? $t('signUpWithSocial', {social: 'Google'})
-            : $t('loginWithSocial', {social: 'Google'}) }}</span>
-        </div>
-      </div>
-    </div>
-    <div class="form-group row text-center">
-      <div class="col-12">
-        <div
-          class="btn btn-secondary social-button"
-          @click="socialAuth('apple')"
-        >
-          <div
-            class="svg-icon social-icon apple-icon"
-            v-html="icons.appleIcon"
-          ></div>
-          <span>{{ registering
-            ? $t('signUpWithSocial', {social: 'Apple'})
-            : $t('loginWithSocial', {social: 'Apple'}) }}</span>
-        </div>
-      </div>
-    </div>
     <div
       v-if="registering"
       class="form-group"
@@ -178,31 +146,6 @@
       font-weight: bold;
     }
 
-    .social-button {
-      width: 100%;
-      height: 100%;
-      white-space: inherit;
-      text-align: center;
-
-      .text {
-        display: inline-block;
-        min-height: 0px;
-      }
-    }
-
-    .social-icon {
-      margin-right: 1em;
-      width: 18px;
-      height: 18px;
-      display: inline-block;
-      vertical-align: top;
-      margin-top: .1em;
-    }
-
-    .apple-icon {
-      margin-top: -1px;
-    }
-
     small.form-text {
       text-align: center;
     }
@@ -217,13 +160,10 @@
 </style>
 
 <script>
-import hello from 'hellojs';
 import debounce from 'lodash/debounce';
 import isEmail from 'validator/es/lib/isEmail';
 import { MINIMUM_PASSWORD_LENGTH } from '@/../../common/script/constants';
-import { setUpAxios, buildAppleAuthUrl } from '@/libs/auth';
-import googleIcon from '@/assets/svg/google.svg?raw';
-import appleIcon from '@/assets/svg/apple_black.svg?raw';
+import { setUpAxios } from '@/libs/auth';
 
 export default {
   name: 'AuthForm',
@@ -236,11 +176,6 @@ export default {
       passwordConfirm: '',
       usernameIssues: [],
     };
-
-    data.icons = Object.freeze({
-      googleIcon,
-      appleIcon,
-    });
 
     return data;
   },
@@ -283,11 +218,6 @@ export default {
       this.validateUsername(this.username);
     },
   },
-  mounted () {
-    hello.init({
-      google: import.meta.env.GOOGLE_CLIENT_ID, // eslint-disable-line
-    });
-  },
   methods: {
     // eslint-disable-next-line func-names
     validateUsername: debounce(function (username) {
@@ -304,35 +234,6 @@ export default {
         }
       });
     }, 500),
-    // @TODO: Abstract hello in to action or lib
-    async socialAuth (network) {
-      if (network === 'apple') {
-        window.location.href = buildAppleAuthUrl();
-      } else {
-        try {
-          await hello(network).logout();
-        } catch (e) {} // eslint-disable-line
-
-        try {
-          const redirectUrl = `${window.location.protocol}//${window.location.host}`;
-          const auth = await hello(network).login({
-            scope: 'email',
-            redirect_uri: redirectUrl, // eslint-disable-line camelcase
-          });
-
-          await this.$store.dispatch('auth:socialAuth', {
-            auth,
-          });
-
-          await this.finishAuth();
-        } catch (err) {
-          console.error(err); // eslint-disable-line no-console
-          // logout the user
-          await hello(network).logout();
-          this.socialAuth(network); // login again
-        }
-      }
-    },
     async register () {
       if (!this.email) {
         window.alert(this.$t('missingEmail')); // eslint-disable-line no-alert

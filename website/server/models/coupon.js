@@ -1,5 +1,3 @@
-// Stubbed - coupon (multiplayer) removed
-import mongoose from 'mongoose';
-
-export const schema = new mongoose.Schema({});
-export const model = mongoose.model('Coupon', schema);
+// Stubbed - mongoose/MongoDB removed
+export const schema = { paths: {} };
+export const model = null;

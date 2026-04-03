@@ -20,10 +20,6 @@
       <privacy-banner />
       <chat-banner />
       <damage-paused-banner />
-      <gems-promo-banner />
-      <gift-promo-banner />
-      <birthday-banner />
-      <notifications-display />
       <app-menu />
       <div
         class="container-fluid"
@@ -35,11 +31,6 @@
           :with-pin="true"
           :generic-purchase="genericPurchase(selectedItemToBuy)"
           @buyPressed="customPurchase($event)"
-        />
-        <selectMembersModal
-          :item="selectedSpellToBuy || {}"
-          :group="user.party"
-          @memberSelected="memberSelected($event)"
         />
         <div :class="{sticky: user.preferences.stickyHeader}">
           <router-view />
@@ -121,18 +112,13 @@ import { loadProgressBar } from 'axios-progress-bar';
 import birthdayModal from '@/components/news/birthdayModal';
 import AppMenu from '@/components/header/menu';
 import AppHeader from '@/components/header/index';
-import BirthdayBanner from '@/components/header/banners/birthdayBanner';
 import ChatBanner from '@/components/header/banners/chatBanner';
 import DamagePausedBanner from '@/components/header/banners/damagePaused';
-import GemsPromoBanner from '@/components/header/banners/gemsPromo';
-import GiftPromoBanner from '@/components/header/banners/giftPromo';
 import PrivacyBanner from '@/components/header/banners/privacy';
 import AppFooter from '@/components/appFooter';
-import notificationsDisplay from '@/components/notifications';
 import { mapState } from '@/libs/store';
 import * as Analytics from '@/libs/analytics';
 import BuyModal from '@/components/shops/buyModal.vue';
-import SelectMembersModal from '@/components/selectMembersModal.vue';
 import notifications from '@/mixins/notifications';
 import { setup as setupPayments } from '@/libs/payments';
 import amazonPaymentsModal from '@/components/payments/amazonModal';
@@ -162,13 +148,8 @@ export default {
     birthdayModal,
     ChatBanner,
     DamagePausedBanner,
-    GemsPromoBanner,
-    GiftPromoBanner,
-    BirthdayBanner,
     PrivacyBanner,
-    notificationsDisplay,
     BuyModal,
-    SelectMembersModal,
     amazonPaymentsModal,
     paymentsSuccessModal,
     subCancelModalConfirm,

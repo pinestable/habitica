@@ -149,15 +149,6 @@
                 </div>
               </div>
             </div>
-            <emoji-auto-complete
-              v-if="editingTags"
-              ref="emojiAutocomplete"
-              :text="activeTagText"
-              :textbox="textbox"
-              :coords="mixinData.autoComplete.coords"
-              :caret-position="mixinData.autoComplete.caretPosition"
-              @select="selectedTagAutocomplete"
-            />
             <div class="filter-panel-footer clearfix">
               <template v-if="editingTags === true">
                 <div class="text-center">
@@ -429,7 +420,6 @@ import dragIcon from '@/assets/svg/drag_indicator.svg?raw';
 
 import { mapState, mapActions } from '@/libs/store';
 import brokenTaskModal from './brokenTaskModal';
-import emojiAutoComplete from '@/components/chat/emojiAutoComplete';
 import { autoCompleteHelperMixin } from '@/mixins/autoCompleteHelper';
 
 export default {
@@ -440,7 +430,6 @@ export default {
     spells,
     brokenTaskModal,
     draggable,
-    emojiAutoComplete,
   },
   directives: {
     markdown,

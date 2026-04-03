@@ -1,16 +1,10 @@
 <template>
   <div>
-    <invite-modal
-      :group="inviteModalGroup"
-      :group-type="inviteModalGroupType"
-    />
-    <create-party-modal />
     <div
       id="app-header"
       class="row"
       :class="{'hide-header': hideHeader}"
     >
-      <members-modal :hide-badge="true" />
       <member-details
         :member="user"
         :class-badge-position="'next-to-name'"
@@ -126,9 +120,6 @@ import orderBy from 'lodash/orderBy';
 import * as Analytics from '@/libs/analytics';
 import { mapGetters, mapActions } from '@/libs/store';
 import MemberDetails from '../memberDetails';
-import createPartyModal from '../groups/createPartyModal';
-import inviteModal from '../groups/inviteModal';
-import membersModal from '../groups/membersModal';
 import ResizeDirective from '@/directives/resize.directive';
 
 export default {
@@ -137,9 +128,6 @@ export default {
   },
   components: {
     MemberDetails,
-    createPartyModal,
-    inviteModal,
-    membersModal,
   },
   data () {
     return {

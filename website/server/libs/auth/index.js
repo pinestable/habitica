@@ -9,17 +9,9 @@ import { verifyUsername } from '../user/validation';
 
 export { loginRes } from './utils';
 
-// Stub exports for compatibility with files that import these names
+// Stub export for compatibility with files that import this name
 export function hasLocalAuth (user) {
   return Boolean(user.email && user.hashedPassword);
-}
-
-export function hasBackupAuth () { return true; }
-export function loginSocial () {
-  throw new NotAuthorized('Social login is not available.');
-}
-export function socialEmailToLocal () {
-  throw new NotAuthorized('Social login is not available.');
 }
 
 const USERNAME_LENGTH_MIN = 1;

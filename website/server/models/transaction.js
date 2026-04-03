@@ -1,6 +1,4 @@
-// Stubbed - transaction (mobile IAP) removed
-import mongoose from 'mongoose';
-
-export const schema = new mongoose.Schema({});
-export const model = mongoose.model('Transaction', schema);
+// Stubbed - mongoose/MongoDB removed
+export const schema = { paths: {} };
+export const model = null;
 export const TransactionModel = model;

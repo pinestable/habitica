@@ -1,7 +1,5 @@
 <template>
   <div>
-    <group-plan-selection-modal />
-    <group-plan-creation-modal />
     <div class="d-flex justify-content-center">
       <div
         class="group-plan-page text-center"
@@ -315,13 +313,8 @@
 <script>
 import { setup as setupPayments } from '@/libs/payments';
 import paymentsMixin from '../../mixins/payments';
-import GroupPlanCreationModal from '../group-plans/groupPlanCreationModal.vue';
-import GroupPlanSelectionModal from '../group-plans/groupPlanSelectionModal.vue';
-
 export default {
   components: {
-    GroupPlanCreationModal,
-    GroupPlanSelectionModal,
   },
   mixins: [paymentsMixin],
   data () {

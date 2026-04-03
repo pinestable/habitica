@@ -235,7 +235,6 @@
       popover-text-key="clickOnEggToHatch"
       translation-key="potionName"
     />
-    <questDetailModal :group="user.party" />
     <cards-modal :card-options="cardOptions" />
   </div>
 </template>
@@ -253,7 +252,7 @@ import FilterSidebar from '@/components/ui/filterSidebar';
 import cardsModal from './cards-modal';
 
 import HatchedPetDialog from '../stable/hatchedPetDialog';
-import questDetailModal from '../../groups/questDetailModal';
+// questDetailModal removed (gamification stripped)
 import QuestInfo from '../../shops/quests/questInfo.vue';
 
 import { mapState } from '@/libs/store';
@@ -291,7 +290,6 @@ export default {
     ItemRows,
     HatchedPetDialog,
     CountBadge,
-    questDetailModal,
     cardsModal,
     QuestInfo,
     FilterSidebar,

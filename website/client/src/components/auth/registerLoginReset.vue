@@ -20,45 +20,6 @@
           ></a>
         </div>
       </div>
-      <div class="form-group">
-        <div>
-          <div
-            class="btn btn-secondary social-button"
-            @click="proceed('google')"
-          >
-            <div
-              class="svg-icon social-icon"
-              v-html="icons.googleIcon"
-            ></div>
-            <div
-              class="text"
-            >
-              {{ $t('signUpWithSocial', {social: 'Google'}) }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <div>
-          <div
-            class="btn btn-secondary social-button"
-            @click="proceed('apple')"
-          >
-            <div
-              class="svg-icon social-icon"
-              v-html="icons.appleIcon"
-            ></div>
-            <div
-              class="text"
-            >
-              {{ $t('signUpWithSocial', {social: 'Apple'}) }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="strike mb-3">
-        <span>{{ $t('or') }}</span>
-      </div>
       <div
         v-if="!registering"
         class="form-group"
@@ -445,26 +406,6 @@
       color: $white;
     }
 
-    .social-button {
-      width: 100%;
-      height: 100%;
-      white-space: inherit;
-      text-align: center;
-
-      .text {
-        display: inline-block;
-      }
-    }
-
-    .social-icon {
-      margin-left: 1em;
-      margin-right: 1em;
-      width: 18px;
-      height: 18px;
-      display: inline-block;
-      vertical-align: top;
-      margin-top: .1em;
-    }
   }
 
   #top-background {
@@ -500,40 +441,6 @@
     width: 2px;
   }
 
-  .strike {
-    display: block;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-
-  .strike > span {
-    font-weight: 700;
-    position: relative;
-    display: inline-block;
-    line-height: 1.714;
-    color: #fff;
-  }
-
-  .strike > span:before,
-  .strike > span:after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 9999px;
-    height: 1px;
-    background: $purple-400;
-  }
-
-  .strike > span:before {
-    right: 100%;
-    margin-right: 15px;
-  }
-
-  .strike > span:after {
-    left: 100%;
-    margin-left: 15px;
-  }
 </style>
 
 <script>
@@ -546,8 +453,6 @@ import sanitizeRedirect from '@/mixins/sanitizeRedirect';
 import accountCreation from '@/mixins/accountCreation';
 import exclamation from '@/assets/svg/exclamation.svg?raw';
 import habiticaIcon from '@/assets/svg/habitica-logo.svg?raw';
-import googleIcon from '@/assets/svg/google.svg?raw';
-import appleIcon from '@/assets/svg/apple_black.svg?raw';
 
 export default {
   components: {
@@ -567,8 +472,6 @@ export default {
     data.icons = Object.freeze({
       exclamation,
       habiticaIcon,
-      googleIcon,
-      appleIcon,
     });
 
     return data;

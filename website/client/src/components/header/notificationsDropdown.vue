@@ -44,7 +44,6 @@
           @click="dismissAll"
         >{{ $t('dismissAll') }}</a>
       </div>
-      <world-boss />
       <onboarding-guide
         v-if="showOnboardingGuide"
         :never-seen="hasSpecialBadge"
@@ -143,11 +142,9 @@ import NEW_INBOX_MESSAGE from './notifications/newPrivateMessage';
 import NEW_MYSTERY_ITEMS from './notifications/newMysteryItems';
 import NEW_STUFF from './notifications/newStuff';
 import ONBOARDING_COMPLETE from './notifications/onboardingComplete';
-import PARTY_INVITATION from './notifications/partyInvitation';
 import QUEST_INVITATION from './notifications/questInvitation';
 import UNALLOCATED_STATS_POINTS from './notifications/unallocatedStatsPoints';
 import VERIFY_USERNAME from './notifications/verifyUsername';
-import WORLD_BOSS from './notifications/worldBoss';
 import OnboardingGuide from './onboardingGuide';
 
 export default {
@@ -169,11 +166,9 @@ export default {
     NEW_MYSTERY_ITEMS,
     NEW_STUFF,
     ONBOARDING_COMPLETE,
-    PARTY_INVITATION,
     QUEST_INVITATION,
     UNALLOCATED_STATS_POINTS,
     VERIFY_USERNAME,
-    WorldBoss: WORLD_BOSS,
     OnboardingGuide,
   },
   data () {
