@@ -42,7 +42,14 @@ export const model = {
     await prisma.tag.updateMany({ where, data });
   },
 
-  // Sanitise update: only allow name changes
+  // Sanitise: only allow name on create/update
+  sanitize (obj) {
+    const out = {};
+    if (obj.name !== undefined) out.name = obj.name;
+    if (obj.id !== undefined) out.id = obj.id;
+    return out;
+  },
+
   sanitizeUpdate (obj) {
     const out = {};
     if (obj.name !== undefined) out.name = obj.name;

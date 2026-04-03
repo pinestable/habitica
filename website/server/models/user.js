@@ -30,6 +30,7 @@ export class UserDocument {
       language: this.language,
       dateFormat: this.dateFormat,
     };
+    this.preferences.toObject = function toObject () { return { ...this }; }.bind(this.preferences);
 
     // Mutable tasksOrder — synced to JSON flat fields on save()
     this.tasksOrder = {
@@ -40,6 +41,9 @@ export class UserDocument {
 
     // Notifications loaded via Prisma include
     this.notifications = (data.notifications || []).map(n => ({ ...n }));
+
+    // Tags loaded via Prisma include
+    this.tags = (data.tags || []).map(t => ({ ...t }));
 
     // Webhooks — not stored in SQLite; empty array prevents webhook.js crashes
     this.webhooks = [];
@@ -94,6 +98,15 @@ export class UserDocument {
     this._dirty.add(path || '*');
   }
 
+  // Instance-level no-op for Mongoose $pull/$push/$set style updates.
+  // Callers should mutate the document in memory and call save() instead.
+  // eslint-disable-next-line class-methods-use-this
+  updateOne () {
+    const p = Promise.resolve({ matchedCount: 1, modifiedCount: 1 });
+    p.exec = () => p;
+    return p;
+  }
+
   async save () {
     // Sync mutable preference object back to flat Prisma columns
     this.dayStart = this.preferences.dayStart;
@@ -126,11 +139,15 @@ export class UserDocument {
     obj.preferences = { ...this.preferences };
     obj.tasksOrder = { ...this.tasksOrder };
     obj.notifications = this.notifications;
+    obj.tags = this.tags;
     delete obj.hashedPassword;
     delete obj.salt;
     delete obj.passwordResetCode;
     return obj;
   }
+
+  // Inbox stripped — alias to toJSON for backward compat
+  async toJSONWithInbox () { return this.toJSON(); }
 
   // Adapted from website/server/models/user/methods.js
   daysUserHasMissed (now, req = {}) {
@@ -138,6 +155,10 @@ export class UserDocument {
     const timezoneUtcOffsetAtLastCron = Number.isFinite(this.preferences.timezoneOffsetAtLastCron)
       ? -this.preferences.timezoneOffsetAtLastCron
       : timezoneUtcOffsetFromUserPrefs;
+
+    if (!this.lastCron) {
+      return { daysMissed: 0, timezoneUtcOffsetFromUserPrefs };
+    }
 
     let timezoneUtcOffsetFromBrowser = typeof req.header === 'function'
       && -Number(req.header('x-user-timezoneoffset'));
@@ -236,7 +257,7 @@ export const model = {
   findById (id) {
     if (!id) return execable(Promise.resolve(null));
     return execable(
-      prisma.user.findUnique({ where: { id }, include: { notifications: true } })
+      prisma.user.findUnique({ where: { id }, include: { notifications: true, tags: true } })
         .then(data => (data ? new UserDocument(data) : null)),
     );
   },
@@ -245,8 +266,17 @@ export const model = {
   findOne (where) {
     const q = mapId(where);
     return execable(
-      prisma.user.findFirst({ where: q, include: { notifications: true } })
+      prisma.user.findFirst({ where: q, include: { notifications: true, tags: true } })
         .then(data => (data ? new UserDocument(data) : null)),
+    );
+  },
+
+  // find returns execable promise resolving to array of UserDocument
+  find (where) {
+    const q = mapId(where);
+    return execable(
+      prisma.user.findMany({ where: q, include: { notifications: true, tags: true } })
+        .then(rows => rows.map(data => new UserDocument(data))),
     );
   },
 

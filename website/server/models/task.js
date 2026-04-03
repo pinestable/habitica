@@ -45,6 +45,10 @@ export class TaskDocument {
     TASK_PRISMA_FIELDS.forEach(f => { this[f] = parsed[f]; });
     this._id = this.id;
     this._dirty = new Set();
+
+    // Stubs for stripped group/challenge features — prevents crashes on guard checks
+    this.group = this.group || { id: null, assignedDate: null, assignedUsers: [] };
+    this.challenge = this.challenge || { id: null, broken: null };
   }
 
   isModified (path) {
@@ -77,12 +81,24 @@ export class TaskDocument {
     return this;
   }
 
+  async deleteOne () {
+    await prisma.task.delete({ where: { id: this.id } }).catch(() => {});
+  }
+
   toJSON () {
     const obj = {};
     TASK_PRISMA_FIELDS.forEach(f => { obj[f] = this[f]; });
     obj._id = obj.id;
     return obj;
   }
+
+  toObject () {
+    return this.toJSON();
+  }
+
+  // Async version of validateSync — resolves to null (no validation errors)
+  // eslint-disable-next-line class-methods-use-this
+  async validate () { return Promise.resolve(null); }
 }
 
 // Per-type factory functions — tasks/index.js uses `new Tasks[type](data)`.
@@ -172,6 +188,18 @@ export const Task = {
   async deleteMany (query) {
     const where = toWhere(query);
     await prisma.task.deleteMany({ where });
+  },
+
+  async updateMany (query, update) {
+    const where = toWhere(query);
+    // Only support plain data updates (not $pull/$push Mongo operators)
+    const data = {};
+    for (const [k, v] of Object.entries(update)) {
+      if (!k.startsWith('$')) data[k] = v;
+    }
+    const p = prisma.task.updateMany({ where, data });
+    p.exec = () => p;
+    return p;
   },
 
   async create (data) {

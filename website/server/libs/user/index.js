@@ -29,7 +29,7 @@ export async function get (req, res, { isV3 = false }) {
     const { daysMissed } = user.daysUserHasMissed(new Date(), req);
     userToJSON.needsCron = false;
     if (daysMissed > 0) userToJSON.needsCron = true;
-    User.addComputedStatsToJSONObj(userToJSON.stats, userToJSON);
+    if (User.addComputedStatsToJSONObj) User.addComputedStatsToJSONObj(userToJSON.stats, userToJSON);
   }
 
   return res.respond(200, userToJSON);
