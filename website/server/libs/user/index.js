@@ -8,7 +8,7 @@ import {
   BadRequest,
   NotAuthorized,
 } from '../errors';
-import { model as User, schema as UserSchema } from '../../models/user';
+import { model as User } from '../../models/user';
 import { model as NewsPost } from '../../models/newsPost';
 import { stringContainsProfanity, nameContainsNewline } from './validation';
 
@@ -64,14 +64,15 @@ const updatablePaths = [
 ];
 
 // This tells us for which paths users can call `PUT /user`.
-// The trick here is to only accept leaf paths, not root/intermediate paths (see https://goo.gl/OEzkAs)
-const acceptablePUTPaths = _.reduce(UserSchema.paths, (accumulator, val, leaf) => {
-  const found = _.find(updatablePaths, rootPath => leaf.indexOf(rootPath) === 0);
-
-  if (found) accumulator[leaf] = true;
-
-  return accumulator;
-}, {});
+// With the flat Prisma model the schema no longer enumerates every leaf path,
+// so we accept any key that starts with one of the updatable root prefixes.
+function isAcceptablePUTPath (key) {
+  return updatablePaths.some(root => key.indexOf(root) === 0);
+}
+// Keep the object form for backward-compat with code that checks `acceptablePUTPaths[key]`
+const acceptablePUTPaths = new Proxy({}, {
+  get (target, key) { return isAcceptablePUTPath(key) ? true : undefined; },
+});
 
 const restrictedPUTSubPaths = [
   'stats.class',

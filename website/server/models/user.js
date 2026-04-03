@@ -293,22 +293,7 @@ export const model = {
   },
 };
 
-// Schema paths stub — the PUT /user handler iterates these to build
-// the list of acceptable update paths.  Keys must use the dot-notation
-// the client sends (e.g. "preferences.dayStart").
-const schemaPaths = {};
-[
-  'preferences.dayStart', 'preferences.timezoneOffset',
-  'preferences.timezoneOffsetAtLastCron', 'preferences.sleep',
-  'preferences.language', 'preferences.dateFormat',
-  'preferences.analyticsConsent', 'preferences.tasks',
-  'preferences.toolbarCollapsed',
-  'profile.name', 'profile.blurb', 'profile.imageUrl',
-  'flags.customizationsNotification', 'flags.showTour',
-  'flags.tour', 'flags.tutorial', 'flags.communityGuidelinesAccepted',
-  'flags.welcomed', 'flags.cardReceived', 'flags.warnedLowHealth',
-].forEach(p => { schemaPaths[p] = true; });
-export const schema = { paths: schemaPaths, statics: {} };
+export const schema = { paths: {}, statics: {} };
 export const publicFields = 'name username language timezoneOffset sleep dateFormat isAdmin';
 export const nameFields = 'name username';
 // mods list not used in stripped server; kept for import compatibility
