@@ -4,13 +4,6 @@
     :class="type"
   >
     <b-modal ref="editTaskModal" />
-    <buy-quest-modal
-      v-if="type === 'reward'"
-      :item="selectedItemToBuy || {}"
-      :price-type="selectedItemToBuy ? selectedItemToBuy.currency : ''"
-      :with-pin="true"
-      @change="resetItemToBuy($event)"
-    />
     <div class="d-flex align-items-center">
       <h2 class="column-title">
         {{ $t(typeLabel) }}
@@ -107,41 +100,6 @@
           @taskDestroyed="taskDestroyed"
         />
       </draggable>
-      <template v-if="hasRewardsList">
-        <draggable
-          ref="rewardsList"
-          class="reward-items"
-          :delay-on-touch-only="true"
-          :delay="100"
-          @update="rewardSorted"
-          @start="rewardDragStart"
-          @end="rewardDragEnd"
-        >
-          <shopItem
-            v-for="reward in inAppRewards"
-            :key="reward.key"
-            :item="reward"
-            :show-popover="showPopovers"
-            :popover-position="'left'"
-            @click="openBuyDialog(reward)"
-          >
-            <template
-              slot="itemBadge"
-              slot-scope="ctx"
-            >
-              <span
-                class="badge-top"
-                @click.prevent.stop="togglePinned(ctx.item)"
-                @keypress.enter.prevent.stop="togglePinned(ctx.item)"
-              >
-                <pin-badge
-                  :pinned="ctx.item.pinned"
-                />
-              </span>
-            </template>
-          </shopItem>
-        </draggable>
-      </template>
     </div>
   </div>
 </template>
@@ -153,46 +111,12 @@
     cursor: grabbing;
   }
 
-  .badge-pin {
-    display: none;
-  }
-
-  .item:hover .badge-pin {
-    display: block;
-  }
-
-  .item:focus-within .badge-pin {
-    display: block;
-  }
-
   .tasks-column {
     min-height: 556px;
   }
 
   .sortable-tasks {
     word-break: break-word;
-  }
-
-  .sortable-tasks + .reward-items {
-    margin-top: 16px;
-  }
-
-  .reward-items {
-    @supports (display: grid) {
-      display: grid;
-      justify-content: center;
-      grid-column-gap: 10px;
-      grid-row-gap: 4px;
-      grid-template-columns: repeat(auto-fill, 94px);
-    }
-
-    @supports not (display: grid) {
-      display: flex;
-      flex-wrap: wrap;
-      & > div {
-        margin: 0 10px 4px 0;
-      }
-    }
   }
 
   .tasks-list {
@@ -337,28 +261,18 @@
     color: $gray-300;
   }
 
-  .icon-reward {
-    width: 26px;
-    height: 20px;
-    color: $gray-300;
-  }
 </style>
 
 <script>
 import throttle from 'lodash/throttle';
 import isEmpty from 'lodash/isEmpty';
 import draggable from 'vuedraggable';
-import inAppRewards from '@/../../common/script/libs/inAppRewards';
 import taskDefaults from '@/../../common/script/libs/taskDefaults';
 import Task from './task';
 import ClearCompletedTodos from './clearCompletedTodos';
-import buyMixin from '@/mixins/buy';
 import sync from '@/mixins/sync';
 import externalLinks from '@/mixins/externalLinks';
 import { mapState, mapActions, mapGetters } from '@/libs/store';
-import shopItem from '../shops/shopItem';
-import BuyQuestModal from '@/components/shops/quests/buyQuestModal.vue';
-import PinBadge from '@/components/ui/pinBadge';
 
 import notifications from '@/mixins/notifications';
 
@@ -372,19 +286,15 @@ import {
 import habitIcon from '@/assets/svg/habit.svg?raw';
 import dailyIcon from '@/assets/svg/daily.svg?raw';
 import todoIcon from '@/assets/svg/todo.svg?raw';
-import rewardIcon from '@/assets/svg/reward.svg?raw';
 import { EVENTS } from '@/libs/events';
 
 export default {
   components: {
     Task,
     ClearCompletedTodos,
-    BuyQuestModal,
-    PinBadge,
-    shopItem,
     draggable,
   },
-  mixins: [buyMixin, notifications, sync, externalLinks],
+  mixins: [notifications, sync, externalLinks],
   // @TODO Set default values for props
   // allows for better control of props values
   // allows for better control of where this component is called
@@ -409,7 +319,6 @@ export default {
       habit: habitIcon,
       daily: dailyIcon,
       todo: todoIcon,
-      reward: rewardIcon,
     });
 
     const typeLabel = '';
@@ -458,22 +367,7 @@ export default {
 
       return searchedList;
     },
-    inAppRewards () {
-      let watchRefresh = this.forceRefresh; // eslint-disable-line
-      const rewards = inAppRewards(this.user);
-
-      return rewards;
-    },
-    hasRewardsList () {
-      return this.isUser === true && this.type === 'reward' && this.activeFilter.label !== 'custom';
-    },
     initialColumnDescription () {
-      // Show the column description in the middle only
-      // if there are no elements (tasks or in app items)
-      if (this.hasRewardsList) {
-        if (this.inAppRewards && this.inAppRewards.length >= 0) return false;
-      }
-
       return this.taskList.length === 0;
     },
     quickAddPlaceholder () {
@@ -481,9 +375,6 @@ export default {
       return this.$t('addATask', { type });
     },
     badgeCount () {
-      if (this.type === 'reward') {
-        return 0;
-      }
       return this.taskList.length;
     },
   },
@@ -515,10 +406,6 @@ export default {
   mounted () {
     this.setColumnBackgroundVisibility();
 
-    this.$root.$on('buyModal::boughtItem', () => {
-      this.forceRefresh = new Date();
-    });
-
     if (this.type !== 'todo') return;
     this.$root.$on(EVENTS.RESYNC_COMPLETED, () => {
       if (this.activeFilter.label !== 'complete2') return;
@@ -530,7 +417,6 @@ export default {
     this.handleExternalLinks();
   },
   beforeDestroy () {
-    this.$root.$off('buyModal::boughtItem');
     if (this.type !== 'todo') return;
     this.$root.$off(EVENTS.RESYNC_COMPLETED);
   },
@@ -590,25 +476,6 @@ export default {
         });
         this.user.tasksOrder[`${this.type}s`] = newOrder;
       }
-    },
-    async rewardSorted (data) {
-      const rewardsList = this.inAppRewards;
-      const rewardToMove = rewardsList[data.oldIndex];
-
-      const newOrder = await this.$store.dispatch('user:movePinnedItem', {
-        path: rewardToMove.path,
-        position: data.newIndex,
-      });
-      this.user.pinnedItemsOrder = newOrder;
-    },
-    rewardDragStart () {
-      // We need to stop popovers from interfering with our dragging
-      this.showPopovers = false;
-      this.isDragging(true);
-    },
-    rewardDragEnd () {
-      this.showPopovers = true;
-      this.isDragging(false);
     },
     canCreateTasks () {
       if (!this.group) return false;
@@ -741,46 +608,6 @@ export default {
         );
       }
       return filteredTaskList;
-    },
-    openBuyDialog (rewardItem) {
-      if (rewardItem.locked) return;
-
-      // Buy armoire and health potions immediately
-      const itemsToPurchaseImmediately = ['potion', 'armoire'];
-      if (itemsToPurchaseImmediately.indexOf(rewardItem.key) !== -1) {
-        this.makeGenericPurchase(rewardItem);
-        this.$emit('buyPressed', rewardItem);
-        return;
-      }
-
-      if (rewardItem.purchaseType === 'quests') {
-        this.selectedItemToBuy = rewardItem;
-        this.$root.$emit('bv::show::modal', 'buy-quest-modal');
-        return;
-      }
-
-      if (rewardItem.purchaseType !== 'gear' || !rewardItem.locked) {
-        this.$emit('openBuyDialog', rewardItem);
-      }
-    },
-    resetItemToBuy ($event) {
-      if (!$event) {
-        this.selectedItemToBuy = null;
-      }
-    },
-    togglePinned (item) {
-      if (!item.pinType) {
-        this.error(this.$t('errorTemporaryItem'));
-        return;
-      }
-
-      try {
-        if (!this.$store.dispatch('user:togglePinnedItem', { type: item.pinType, path: item.path })) {
-          this.text(this.$t('unpinnedItem', { item: item.text }));
-        }
-      } catch (e) {
-        this.error(e.message);
-      }
     },
     isDragging (dragging) {
       this.dragging = dragging;

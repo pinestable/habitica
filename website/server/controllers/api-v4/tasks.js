@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { authWithHeaders } from '../../middlewares/auth';
 import { scoreTasks } from '../../libs/tasks';
 
@@ -60,8 +59,7 @@ api.scoreTasks = {
     const { user } = res.locals;
     const tasksResponses = await scoreTasks(user, req.body, req, res);
 
-    const userStats = user.stats.toJSON();
-    const resJsonData = _.assign({ tasks: tasksResponses }, userStats);
+    const resJsonData = { tasks: tasksResponses };
     res.respond(200, resJsonData);
   },
 };

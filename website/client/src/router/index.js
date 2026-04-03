@@ -20,19 +20,6 @@ const AdminPanelSearchPage = () => import(/* webpackChunkName: "admin-panel" */'
 // Tasks
 const UserTasks = () => import(/* webpackChunkName: "userTasks" */'@/components/tasks/user');
 
-// Inventory
-const InventoryContainer = () => import(/* webpackChunkName: "inventory" */'@/components/inventory/index');
-const ItemsPage = () => import(/* webpackChunkName: "inventory" */'@/components/inventory/items/index');
-const EquipmentPage = () => import(/* webpackChunkName: "inventory" */'@/components/inventory/equipment/index');
-const StablePage = () => import(/* webpackChunkName: "inventory" */'@/components/inventory/stable/index');
-
-// Shops
-const ShopsContainer = () => import(/* webpackChunkName: "shops" */'@/components/shops/index');
-const MarketPage = () => import(/* webpackChunkName: "shops-market" */'@/components/shops/market/index');
-const QuestsPage = () => import(/* webpackChunkName: "shops-quest" */'@/components/shops/quests/index');
-const CustomizationsPage = () => import(/* webpackChunkName: "shops-customizations" */'@/components/shops/customizations/index');
-const SeasonalPage = () => import(/* webpackChunkName: "shops-seasonal" */'@/components/shops/seasonal/index');
-const TimeTravelersPage = () => import(/* webpackChunkName: "shops-timetravelers" */'@/components/shops/timeTravelers/index');
 
 const MessagesIndex = () => import(/* webpackChunkName: "private-messages" */ '@/pages/private-messages/index.vue');
 
@@ -52,36 +39,6 @@ const router = new VueRouter({
       name: 'userProfile',
       path: '/profile/:userId',
       props: true,
-    },
-    { name: 'profile', path: '/user/profile' },
-    {
-      name: 'avatar',
-      path: '/avatar',
-      children: [
-        { name: 'backgrounds', path: 'backgrounds' },
-      ],
-    },
-    { name: 'stats', path: '/user/stats' },
-    { name: 'achievements', path: '/user/achievements' },
-    {
-      path: '/inventory',
-      component: InventoryContainer,
-      children: [
-        { name: 'items', path: 'items', component: ItemsPage },
-        { name: 'equipment', path: 'equipment', component: EquipmentPage },
-        { name: 'stable', path: 'stable', component: StablePage },
-      ],
-    },
-    {
-      path: '/shops',
-      component: ShopsContainer,
-      children: [
-        { name: 'market', path: 'market', component: MarketPage },
-        { name: 'quests', path: 'quests', component: QuestsPage },
-        { name: 'customizations', path: 'customizations', component: CustomizationsPage },
-        { name: 'seasonal', path: 'seasonal', component: SeasonalPage },
-        { name: 'time', path: 'time', component: TimeTravelersPage },
-      ],
     },
     USER_ROUTES,
     STATIC_ROUTES,
@@ -199,39 +156,6 @@ router.beforeEach(async (to, from, next) => {
       toPath: to.path,
     });
 
-    return null;
-  }
-
-  if (to.name === 'tasks' && to.query.openGemsModal === 'true') {
-    store.state.postLoadModal = 'buy-gems';
-    return next({ name: 'tasks' });
-  }
-
-  if ((to.name === 'stats' || to.name === 'achievements' || to.name === 'profile') && from.name !== null) {
-    const userId = store.state.user.data._id;
-    let redirectPath = `/profile/${userId}`;
-    if (to.name === 'stats') {
-      redirectPath += '#stats';
-    } else if (to.name === 'achievements') {
-      redirectPath += '#achievements';
-    }
-    router.app.$emit('habitica:show-profile', {
-      userId,
-      startingPage: to.name,
-      fromPath: from.path,
-      toPath: redirectPath,
-    });
-    return null;
-  }
-
-  if (from.name === 'userProfile' || from.name === 'stats' || from.name === 'achievements' || from.name === 'profile') {
-    router.app.$root.$emit('bv::hide::modal', 'profile');
-  }
-
-  if (to.name === 'backgrounds') {
-    store.state.avatarEditorOptions.editingUser = true;
-    store.state.avatarEditorOptions.startingPage = 'backgrounds';
-    router.app.$root.$emit('bv::show::modal', 'avatar-modal');
     return null;
   }
 

@@ -755,9 +755,7 @@ api.scoreTask = {
   method: 'POST',
   url: '/tasks/:taskId/score/:direction',
   middlewares: [authWithHeaders({
-    userFieldsToInclude: ['achievements', 'guilds', 'items.eggs', 'items.food',
-      'items.gear.equipped', 'items.hatchingPotions', 'items.lastDrop', 'items.quests', 'party',
-      'purchased.plan', 'stats', 'tasksOrder', 'webhooks'],
+    userFieldsToInclude: ['tasksOrder'],
   })],
   async handler (req, res) {
     // Parameters are validated in scoreTasks
@@ -766,12 +764,10 @@ api.scoreTask = {
     const { taskId, direction } = req.params;
     const [taskResponse] = await scoreTasks(user, [{ id: taskId, direction }], req, res);
 
-    const userStats = user.stats.toJSON();
-
-    const resJsonData = assign({
+    const resJsonData = {
       delta: taskResponse.delta,
       _tmp: user._tmp,
-    }, userStats);
+    };
 
     res.respond(200, resJsonData);
   },

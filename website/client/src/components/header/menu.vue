@@ -2,8 +2,6 @@
   <div>
     <profileModal />
     <report-member-modal />
-    <send-gift-modal />
-    <select-user-modal />
     <b-navbar
       id="habitica-menu"
       class="topbar navbar-inverse static-top"
@@ -57,220 +55,6 @@
           >
             {{ $t('tasks') }}
           </b-nav-item>
-          <li
-            class="topbar-item droppable"
-            :class="{
-              'active': $route.path.startsWith('/inventory')}"
-          >
-            <div
-              class="chevron rotate"
-              @click="dropdownMobile($event)"
-            >
-              <div
-                v-once
-                class="chevron-icon-down"
-                v-html="icons.chevronDown"
-              ></div>
-            </div>
-            <router-link
-              class="nav-link"
-              :to="{name: 'items'}"
-            >
-              {{ $t('inventory') }}
-            </router-link>
-            <div class="topbar-dropdown">
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'items'}"
-                exact="exact"
-              >
-                {{ $t('items') }}
-              </router-link>
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'equipment'}"
-              >
-                {{ $t('equipment') }}
-              </router-link>
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'stable'}"
-              >
-                {{ $t('stable') }}
-              </router-link>
-            </div>
-          </li>
-          <li
-            class="topbar-item droppable"
-            :class="{
-              'active': $route.path.startsWith('/shop')}"
-          >
-            <div
-              class="chevron rotate"
-              @click="dropdownMobile($event)"
-            >
-              <div
-                v-once
-                class="chevron-icon-down"
-                v-html="icons.chevronDown"
-              ></div>
-            </div>
-            <router-link
-              class="nav-link"
-              :to="{name: 'market'}"
-            >
-              {{ $t('shops') }}
-            </router-link>
-            <div class="topbar-dropdown">
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'market'}"
-                exact="exact"
-              >
-                {{ $t('market') }}
-              </router-link>
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'quests'}"
-              >
-                {{ $t('quests') }}
-              </router-link>
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'customizations'}"
-              >
-                {{ $t('customizations') }}
-              </router-link>
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'seasonal'}"
-              >
-                {{ $t('titleSeasonalShop') }}
-              </router-link>
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'time'}"
-              >
-                {{ $t('titleTimeTravelers') }}
-              </router-link>
-            </div>
-          </li>
-          <b-nav-item
-            v-if="user.party._id && user._id !== partyLeaderId"
-            class="topbar-item"
-            :class="{'active': $route.path.startsWith('/party')}"
-            tag="li"
-            :to="{name: 'party'}"
-          >
-            {{ $t('party') }}
-          </b-nav-item>
-          <li
-            v-if="user.party._id && user._id === partyLeaderId"
-            class="topbar-item droppable"
-            :class="{'active': $route.path.startsWith('/party')}"
-          >
-            <div
-              class="chevron rotate"
-              @click="dropdownMobile($event)"
-            >
-              <div
-                v-once
-                class="chevron-icon-down"
-                v-html="icons.chevronDown"
-              ></div>
-            </div>
-            <router-link
-              class="nav-link"
-              :to="{name: 'party'}"
-            >
-              {{ $t('party') }}
-            </router-link>
-            <div class="topbar-dropdown">
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'lookingForParty'}"
-              >
-                {{ $t('lookingForPartyTitle') }}
-              </router-link>
-            </div>
-          </li>
-          <b-nav-item
-            v-if="!user.party._id"
-            class="topbar-item"
-            :class="{'active': $route.path.startsWith('/party')}"
-            @click="openPartyModal()"
-          >
-            {{ $t('party') }}
-          </b-nav-item>
-          <li
-            class="topbar-item droppable"
-            :class="{
-              'active': $route.path.startsWith('/group-plans')}"
-          >
-            <div
-              v-if="groupPlans && groupPlans.length > 0"
-              class="chevron rotate"
-              @click="dropdownMobile($event)"
-            >
-              <div
-                v-once
-                class="chevron-icon-down"
-                v-html="icons.chevronDown"
-              ></div>
-            </div>
-            <router-link
-              class="nav-link"
-              :to="groupPlanTopLink"
-            >
-              {{ $t('group') }}
-            </router-link>
-            <div class="topbar-dropdown">
-              <router-link
-                v-for="group in groupPlans"
-                :key="group._id"
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'groupPlanDetailTaskInformation', params: {groupId: group._id}}"
-              >
-                {{ group.name }}
-              </router-link>
-            </div>
-          </li>
-          <li
-            class="topbar-item droppable"
-            :class="{
-              'active': $route.path.startsWith('/challenges')}"
-          >
-            <div
-              class="chevron rotate"
-              @click="dropdownMobile($event)"
-            >
-              <div
-                v-once
-                class="chevron-icon-down"
-                v-html="icons.chevronDown"
-              ></div>
-            </div>
-            <router-link
-              class="nav-link"
-              :to="{name: 'myChallenges'}"
-            >
-              {{ $t('challenges') }}
-            </router-link>
-            <div class="topbar-dropdown">
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'myChallenges'}"
-              >
-                {{ $t('myChallenges') }}
-              </router-link>
-              <router-link
-                class="topbar-dropdown-item dropdown-item"
-                :to="{name: 'findChallenges'}"
-              >
-                {{ $t('findChallenges') }}
-              </router-link>
-            </div>
-          </li>
           <li
             class="topbar-item droppable"
             :class="{
@@ -382,41 +166,6 @@
             </div>
           </li>
         </b-navbar-nav>
-        <div class="currency-tray form-inline">
-          <div
-            v-if="userHourglasses > 0"
-            class="item-with-icon"
-          >
-            <div
-              v-b-tooltip.hover.bottom="$t('mysticHourglassesTooltip')"
-              class="top-menu-icon svg-icon mr-1"
-              v-html="icons.hourglasses"
-            ></div>
-            <span>{{ userHourglasses }}</span>
-          </div>
-          <div
-            class="item-with-icon gem"
-            @click.prevent="showBuyGemsModal()"
-          >
-            <a
-              v-b-tooltip.hover.bottom="$t('gems')"
-              class="top-menu-icon svg-icon gem mr-2"
-              :aria-label="$t('gems')"
-              href="#buy-gems"
-              v-html="icons.gem"
-            ></a>
-            <span>{{ userGems }}</span>
-          </div>
-          <div class="item-with-icon gold">
-            <div
-              v-b-tooltip.hover.bottom="$t('gold')"
-              class="top-menu-icon svg-icon mr-2"
-              :aria-label="$t('gold')"
-              v-html="icons.gold"
-            ></div>
-            <span>{{ Math.floor(user.stats.gp * 100) / 100 }}</span>
-          </div>
-        </div>
         <div class="form-inline desktop-only">
           <a
             v-b-tooltip.hover.bottom="$t('sync')"
@@ -483,9 +232,6 @@ body.modal-open #habitica-menu {
     margin-left: auto;
   }
 
-  .currency-tray {
-    display: flex;
-  }
 
   .topbar-item {
     font-size: 16px;
@@ -562,15 +308,6 @@ body.modal-open #habitica-menu {
       font-weight: bold;
     }
 
-    &.gem {
-      margin-left: 12px;
-    }
-
-    &.gold {
-      margin-left: 12px;
-      margin-right: 36px;
-    }
-
     &:focus ::v-deep .top-menu-icon.svg-icon,
     &:hover ::v-deep .top-menu-icon.svg-icon {
       color: $white;
@@ -589,33 +326,6 @@ body.modal-open #habitica-menu {
 
   a.item-with-icon:focus {
     outline: none;
-  }
-
-  @keyframes rotateGemColors {
-    /* Gems are green by default, so we rotate through ROYGBIV starting with green. */
-    20% {
-      fill: #46A7D9; /* Blue */
-    }
-    40% {
-      fill: #925CF3; /* Purple */
-    }
-    60% {
-      fill: #DE3F3F; /* Red */
-    }
-    80% {
-      fill: #FA8537; /* Orange */
-    }
-    100% {
-      fill: #FFB445; /* Yellow */
-    }
-  }
-
-  .gem:hover {
-    cursor: pointer;
-
-    & ::v-deep path:nth-child(1) {
-      animation: rotateGemColors 3s linear infinite alternate;
-    }
   }
 
   .message-count.top-count {
@@ -662,10 +372,6 @@ body.modal-open #habitica-menu {
 
     .topbar {
       max-height: $menuToolbarHeight;
-
-      .currency-tray {
-        margin-left: auto;
-      }
 
       .topbar-item {
         padding-top: 5px;
@@ -752,13 +458,6 @@ body.modal-open #habitica-menu {
       }
     }
 
-    .currency-tray {
-      justify-content: center;
-      min-height: 40px;
-      background: #271b3d;
-      width: 100%;
-    }
-
     .desktop-only {
       display: none !important;
     }
@@ -782,21 +481,16 @@ body.modal-open #habitica-menu {
 </style>
 
 <script>
-import { mapState, mapGetters } from '@/libs/store';
+import { mapState } from '@/libs/store';
 import { goToModForm } from '@/libs/modform';
 
-import gemIcon from '@/assets/svg/gem.svg?raw';
-import goldIcon from '@/assets/svg/gold.svg?raw';
 import syncIcon from '@/assets/svg/sync.svg?raw';
-import svgHourglasses from '@/assets/svg/hourglass.svg?raw';
 import chevronDownIcon from '@/assets/svg/chevron-down.svg?raw';
 import melior from '@/assets/svg/melior.svg?raw';
 
 import notificationMenu from './notificationsDropdown';
 import profileModal from '../userMenu/profileModal';
 import reportMemberModal from '../members/reportMemberModal';
-import sendGiftModal from '@/components/payments/sendGiftModal';
-import selectUserModal from '@/components/payments/selectUserModal';
 import sync from '@/mixins/sync';
 import userDropdown from './userDropdown';
 import reportBug from '@/mixins/reportBug.js';
@@ -807,8 +501,6 @@ export default {
     notificationMenu,
     profileModal,
     reportMemberModal,
-    sendGiftModal,
-    selectUserModal,
     userDropdown,
   },
   mixins: [sync, reportBug, userStateMixin],
@@ -818,9 +510,6 @@ export default {
       menuIsOpen: false,
       partyLeaderId: null,
       icons: Object.freeze({
-        gem: gemIcon,
-        gold: goldIcon,
-        hourglasses: svgHourglasses,
         sync: syncIcon,
         melior,
         chevronDown: chevronDownIcon,
@@ -828,22 +517,10 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({
-      userGems: 'user:gems',
-    }),
     ...mapState({
       user: 'user.data',
-      userHourglasses: 'user.data.purchased.plan.consecutive.trinkets',
-      groupPlans: 'groupPlans.data',
       modalStack: 'modalStack',
     }),
-    groupPlanTopLink () {
-      if (!this.groupPlans || this.groupPlans.length === 0) return { name: 'groupPlan' };
-      return {
-        name: 'groupPlanDetailTaskInformation',
-        params: { groupId: this.groupPlans[0]._id },
-      };
-    },
     hasElevatedPrivileges () {
       return this.user.permissions.fullAccess
         || this.user.permissions.userSupport
@@ -852,8 +529,6 @@ export default {
     },
   },
   async mounted () {
-    await this.getUserGroupPlans();
-    await this.getUserParty();
     if (document.getElementById('menu_collapse')) {
       Array.from(document.getElementById('menu_collapse').getElementsByTagName('a')).forEach(link => {
         link.addEventListener('click', this.closeMenu);
@@ -863,9 +538,6 @@ export default {
       link.addEventListener('mouseenter', this.dropdownDesktop);
       link.addEventListener('mouseleave', this.dropdownDesktop);
     });
-    this.$root.$on('update-party', () => {
-      this.getUserParty();
-    });
   },
   methods: {
     modForm () {
@@ -873,21 +545,6 @@ export default {
     },
     toggleUserDropdown () {
       this.isUserDropdownOpen = !this.isUserDropdownOpen;
-    },
-    async getUserGroupPlans () {
-      await this.$store.dispatch('guilds:getGroupPlans');
-    },
-    async getUserParty () {
-      if (this.user.party._id) {
-        await this.$store.dispatch('party:getParty');
-        this.partyLeaderId = this.$store.state.party.data.leader._id;
-      }
-    },
-    openPartyModal () {
-      this.$root.$emit('bv::show::modal', 'create-party-modal');
-    },
-    showBuyGemsModal () {
-      this.$root.$emit('bv::show::modal', 'buy-gems', { alreadyTracked: true });
     },
     dropdownDesktop (hover) {
       if (this.isDesktop() && hover.target.classList.contains('droppable')) {

@@ -1,33 +1,19 @@
-import cloneDeep from 'lodash/cloneDeep';
 import forEach from 'lodash/forEach';
-import isFunction from 'lodash/isFunction';
-import pick from 'lodash/pick';
 import nconf from 'nconf';
-import get from 'lodash/get';
 import { authWithHeaders } from '../../middlewares/auth';
 import common from '../../../common';
 import {
   BadRequest,
   NotAuthorized,
 } from '../../libs/errors';
-import {
-  basicFields as basicGroupFields,
-  model as Group,
-} from '../../models/group';
 import * as Tasks from '../../models/task';
 import * as passwordUtils from '../../libs/password';
-import {
-  userActivityWebhook,
-} from '../../libs/webhook';
 import {
   getUserInfo,
   sendTxn,
 } from '../../libs/email';
-import * as inboxLib from '../../libs/inbox';
 import * as userLib from '../../libs/user';
-import { model as UserHistory } from '../../models/userHistory';
 
-const OFFICIAL_PLATFORMS = ['habitica-web', 'habitica-ios', 'habitica-android'];
 const TECH_ASSISTANCE_EMAIL = nconf.get('EMAILS_TECH_ASSISTANCE_EMAIL');
 const DELETE_CONFIRMATION = 'DELETE';
 
@@ -127,19 +113,8 @@ api.getBuyList = {
   middlewares: [authWithHeaders()],
   url: '/user/inventory/buy',
   async handler (req, res) {
-    const list = cloneDeep(common.updateStore(res.locals.user));
-
-    // return text and notes strings
-    forEach(list, item => {
-      forEach(item, (itemPropVal, itemPropKey) => {
-        if (
-          isFunction(itemPropVal)
-          && itemPropVal.i18nLangFunc
-        ) item[itemPropKey] = itemPropVal(req.language);
-      });
-    });
-
-    res.respond(200, list);
+    // Gamification removed — no inventory/buy list
+    res.respond(200, []);
   },
 };
 
@@ -172,22 +147,11 @@ api.getBuyList = {
  */
 api.getInAppRewardsList = {
   method: 'GET',
-  middlewares: [authWithHeaders({ userFieldsToInclude: ['items', 'pinnedItems', 'unpinnedItems', 'pinnedItemsOrder', 'stats.class', 'achievements', 'purchased'] })],
+  middlewares: [authWithHeaders()],
   url: '/user/in-app-rewards',
   async handler (req, res) {
-    const list = common.inAppRewards(res.locals.user);
-
-    // return text and notes strings
-    forEach(list, item => {
-      forEach(item, (itemPropVal, itemPropKey) => {
-        if (
-          isFunction(itemPropVal)
-          && itemPropVal.i18nLangFunc
-        ) item[itemPropKey] = itemPropVal(req.language);
-      });
-    });
-
-    res.respond(200, list);
+    // Gamification removed — no in-app rewards
+    res.respond(200, []);
   },
 };
 
@@ -277,7 +241,6 @@ api.deleteUser = {
   url: '/user',
   async handler (req, res) {
     const { user } = res.locals;
-    const { plan } = user.purchased;
 
     const { password } = req.body;
     if (!password) throw new BadRequest(res.t('missingPassword'));
@@ -285,28 +248,12 @@ api.deleteUser = {
     if (user.auth.local.hashed_password && user.auth.local.email) {
       const isValidPassword = await passwordUtils.compare(user, password);
       if (!isValidPassword) throw new NotAuthorized(res.t('wrongPassword'));
-    } else if (
-      (user.auth.facebook.id || user.auth.google.id || user.auth.apple.id)
-      && password !== DELETE_CONFIRMATION
-    ) {
+    } else if (password !== DELETE_CONFIRMATION) {
       throw new NotAuthorized(res.t('incorrectDeletePhrase', { magicWord: DELETE_CONFIRMATION }));
     }
 
     const { feedback } = req.body;
     if (feedback && feedback.length > 10000) throw new BadRequest(`Account deletion feedback is limited to 10,000 characters. For lengthy feedback, email ${TECH_ASSISTANCE_EMAIL}.`); // @TODO localize this string
-
-    if (plan && plan.customerId && !plan.dateTerminated) {
-      throw new NotAuthorized(res.t('cannotDeleteActiveAccount'));
-    }
-
-    const types = ['party', 'guilds'];
-    const groupFields = basicGroupFields.concat(' leader memberCount purchased');
-
-    const groupsUserIsMemberOf = await Group.getGroups({ user, types, groupFields });
-
-    const groupLeavePromises = groupsUserIsMemberOf.map(group => group.leave(user, 'remove-all'));
-
-    await Promise.all(groupLeavePromises);
 
     await Tasks.Task.deleteMany({
       userId: user._id,
@@ -316,7 +263,7 @@ api.deleteUser = {
 
     if (feedback) {
       sendTxn({ email: TECH_ASSISTANCE_EMAIL }, 'admin-feedback', [
-        { name: 'PROFILE_NAME', content: user.profile.name },
+        { name: 'PROFILE_NAME', content: user.name },
         { name: 'USERNAME', content: user.auth.local.username },
         { name: 'UUID', content: user._id },
         { name: 'EMAIL', content: getUserInfo(user, ['email']).email },
@@ -324,13 +271,6 @@ api.deleteUser = {
         { name: 'FEEDBACK', content: feedback },
       ]);
     }
-
-    res.analytics.track('account delete', {
-      user: pick(user, ['preferences', 'registeredThrough']),
-      uuid: user._id,
-      hitType: 'event',
-      category: 'behavior',
-    });
 
     res.respond(200, {});
   },
@@ -366,9 +306,6 @@ api.getUserAnonymized = {
   url: '/user/anonymized',
   async handler (req, res) {
     const user = await res.locals.user.toJSONWithInbox();
-    user.stats.toNextLevel = common.tnl(user.stats.lvl);
-    user.stats.maxHealth = common.maxHealth;
-    user.stats.maxMP = common.statsComputed(res.locals.user).maxMP;
 
     delete user.apiToken;
     if (user.auth) {
@@ -379,20 +316,8 @@ api.getUserAnonymized = {
     }
     delete user.newMessages;
     delete user.profile;
-    delete user.purchased.plan;
-    delete user.contributor;
-    delete user.invitations;
-    delete user.items.special.nyeReceived;
-    delete user.items.special.valentineReceived;
     delete user.webhooks;
-    delete user.achievements.challenges;
     delete user.notifications;
-    delete user.secret;
-    delete user.permissions;
-
-    forEach(user.inbox.messages, msg => {
-      msg.text = 'inbox message text';
-    });
 
     forEach(user.tags, tag => {
       tag.name = 'tag';
@@ -403,7 +328,7 @@ api.getUserAnonymized = {
       userId: user._id,
       $or: [
         { type: 'todo', completed: false },
-        { type: { $in: ['habit', 'daily', 'reward'] } },
+        { type: { $in: ['habit', 'daily'] } },
       ],
     };
     const tasks = await Tasks.Task.find(query).exec();
@@ -447,9 +372,6 @@ api.sleep = {
   },
 };
 
-const buySpecialKeys = ['snowball', 'spookySparkles', 'shinySeed', 'seafoam'];
-const buyKnownKeys = ['armoire', 'mystery', 'potion', 'quest', 'special'];
-
 /**
  * @api {post} /api/v3/user/buy/:key Buy gear, armoire or potion
  * @apiDescription Under the hood uses UserBuyGear, UserBuyPotion and UserBuyArmoire
@@ -479,42 +401,12 @@ const buyKnownKeys = ['armoire', 'mystery', 'potion', 'quest', 'special'];
  *  @apiErrorExample {json} NotAuthorized Not enough gold
  *  {"success":false,"error":"NotAuthorized","message":"Not Enough Gold"}
  */
+// Gamification removed — all buy/gear/spell/equip endpoints stubbed
 api.buy = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/buy/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-
-    // @TODO: Remove this when mobile passes type in body
-    const type = req.params.key;
-    if (buySpecialKeys.indexOf(type) !== -1) {
-      req.type = 'special';
-    } else if (buyKnownKeys.indexOf(type) === -1) {
-      req.type = 'marketGear';
-    }
-
-    // @TODO: right now common follow express structure, but we should decouple the dependency
-    if (req.body.type) req.type = req.body.type;
-
-    let quantity = 1;
-    if (req.body.quantity) quantity = req.body.quantity;
-    req.quantity = quantity;
-    if (OFFICIAL_PLATFORMS.indexOf(req.headers['x-client']) === -1) {
-      res.analytics = undefined;
-    }
-    const buyRes = await common.ops.buy(user, req, res.analytics);
-
-    await user.save();
-
-    if (type === 'armoire') {
-      await UserHistory.beginUserHistoryUpdate(user._id, req.headers)
-        .withArmoire(buyRes[0].armoire.dropKey || 'experience')
-        .commit();
-    }
-
-    res.respond(200, ...buyRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -556,12 +448,7 @@ api.buyGear = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/buy-gear/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const buyGearRes = await common.ops.buy(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...buyGearRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -596,20 +483,7 @@ api.buyArmoire = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/buy-armoire',
-  async handler (req, res) {
-    const { user } = res.locals;
-    req.type = 'armoire';
-    req.params.key = 'armoire';
-    if (OFFICIAL_PLATFORMS.indexOf(req.headers['x-client']) === -1) {
-      res.analytics = undefined;
-    }
-    const buyArmoireResponse = await common.ops.buy(user, req, res.analytics);
-    await user.save();
-    await UserHistory.beginUserHistoryUpdate(user._id, req.headers)
-      .withArmoire(buyArmoireResponse[0].armoire.dropKey || 'experience')
-      .commit();
-    res.respond(200, ...buyArmoireResponse);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -642,14 +516,7 @@ api.buyHealthPotion = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/buy-health-potion',
-  async handler (req, res) {
-    const { user } = res.locals;
-    req.type = 'potion';
-    req.params.key = 'potion';
-    const buyHealthPotionResponse = await common.ops.buy(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...buyHealthPotionResponse);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -685,13 +552,7 @@ api.buyMysterySet = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/buy-mystery-set/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    req.type = 'mystery';
-    const buyMysterySetRes = await common.ops.buy(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...buyMysterySetRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -728,13 +589,7 @@ api.buyQuest = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/buy-quest/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    req.type = 'quest';
-    const buyQuestRes = await common.ops.buy(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...buyQuestRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -770,13 +625,7 @@ api.buySpecialSpell = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/buy-special-spell/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    req.type = 'special';
-    const buySpecialSpellRes = await common.ops.buy(user, req);
-    await user.save();
-    res.respond(200, ...buySpecialSpellRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -816,23 +665,7 @@ api.hatch = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/hatch/:egg/:hatchingPotion',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const hatchRes = common.ops.hatch(user, req, res.analytics);
-
-    await user.save();
-
-    res.respond(200, ...hatchRes);
-
-    // Send webhook
-    const petKey = `${req.params.egg}-${req.params.hatchingPotion}`;
-
-    userActivityWebhook.send(user, {
-      type: 'petHatched',
-      pet: petKey,
-      message: hatchRes[1],
-    });
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -870,12 +703,7 @@ api.equip = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/equip/:type/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const equipRes = common.ops.equip(user, req);
-    await user.save();
-    res.respond(200, ...equipRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -914,25 +742,7 @@ api.feed = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/feed/:pet/:food',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const feedRes = common.ops.feed(user, req, res.analytics);
-
-    await user.save();
-
-    res.respond(200, ...feedRes);
-
-    // Send webhook
-    const petValue = feedRes[0];
-
-    if (petValue === -1) { // evolved to mount
-      userActivityWebhook.send(user, {
-        type: 'mountRaised',
-        pet: req.params.pet,
-        message: feedRes[1],
-      });
-    }
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -962,12 +772,7 @@ api.changeClass = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/change-class',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const changeClassRes = await common.ops.changeClass(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...changeClassRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -983,12 +788,7 @@ api.disableClasses = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/disable-classes',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const disableClassesRes = common.ops.disableClasses(user, req);
-    await user.save();
-    res.respond(200, ...disableClassesRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1022,28 +822,7 @@ api.purchase = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/purchase/:type/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const type = get(req.params, 'type');
-    const key = get(req.params, 'key');
-
-    // Some groups limit their members ability to obtain gems
-    // The check is async so it's done on the server only and not on the client,
-    // resulting in a purchase that will seem successful until the request hit the server.
-    if (type === 'gems' && key === 'gem') {
-      const canGetGems = await user.canGetGems();
-      if (!canGetGems) throw new NotAuthorized(res.t('groupPolicyCannotGetGems'));
-    }
-
-    // Req is currently used as options. Slightly confusing, but this will solve that for now.
-    let quantity = 1;
-    if (req.body.quantity) quantity = req.body.quantity;
-    req.quantity = quantity;
-
-    const purchaseRes = await common.ops.buy(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...purchaseRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1076,19 +855,7 @@ api.userPurchaseHourglass = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/purchase-hourglass/:type/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const quantity = req.body.quantity || 1;
-    if (quantity < 1 || !Number.isInteger(quantity)) throw new BadRequest(res.t('invalidQuantity'), req.language);
-    const purchaseHourglassRes = await common.ops.buy(
-      user,
-      req,
-      res.analytics,
-      { quantity, hourglass: true },
-    );
-    await user.save();
-    res.respond(200, ...purchaseHourglassRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1136,12 +903,7 @@ api.readCard = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/read-card/:cardType',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const readCardRes = common.ops.readCard(user, req);
-    await user.save();
-    res.respond(200, ...readCardRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1178,12 +940,7 @@ api.userOpenMysteryItem = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/open-mystery-item',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const openMysteryItemRes = common.ops.openMysteryItem(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...openMysteryItemRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /* @api {post} /api/v3/user/release-pets Release pets
@@ -1210,12 +967,7 @@ api.userReleasePets = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/release-pets',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const releasePetsRes = await common.ops.releasePets(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...releasePetsRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1259,12 +1011,7 @@ api.userReleaseBoth = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/release-both',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const releaseBothRes = common.ops.releaseBoth(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...releaseBothRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1295,12 +1042,7 @@ api.userReleaseMounts = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/release-mounts',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const releaseMountsRes = await common.ops.releaseMounts(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...releaseMountsRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1328,12 +1070,7 @@ api.userSell = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/sell/:type/:key',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const sellRes = common.ops.sell(user, req);
-    await user.save();
-    res.respond(200, ...sellRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1371,12 +1108,7 @@ api.userUnlock = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/unlock',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const unlockRes = await common.ops.unlock(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...unlockRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1397,12 +1129,7 @@ api.userRevive = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/revive',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const reviveRes = common.ops.revive(user, req, res.analytics);
-    await user.save();
-    res.respond(200, ...reviveRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /* NOTE this route has also an API v4 version */
@@ -1464,10 +1191,8 @@ api.blockUser = {
   middlewares: [authWithHeaders()],
   url: '/user/block/:uuid',
   async handler (req, res) {
-    const { user } = res.locals;
-    const blockUserRes = common.ops.blockUser(user, req);
-    await user.save();
-    res.respond(200, ...blockUserRes);
+    // Social features removed — no-op
+    res.respond(200, []);
   },
 };
 
@@ -1506,11 +1231,8 @@ api.deleteMessage = {
   middlewares: [authWithHeaders()],
   url: '/user/messages/:id',
   async handler (req, res) {
-    const { user } = res.locals;
-
-    await inboxLib.deleteMessage(user, req.params.id);
-
-    res.respond(200, ...[await inboxLib.getUserInbox(user, { asArray: false })]);
+    // Social/inbox features removed — no-op
+    res.respond(200, {});
   },
 };
 
@@ -1531,11 +1253,8 @@ api.clearMessages = {
   middlewares: [authWithHeaders()],
   url: '/user/messages',
   async handler (req, res) {
-    const { user } = res.locals;
-
-    await inboxLib.clearPMs(user);
-
-    res.respond(200, ...[]);
+    // Social/inbox features removed — no-op
+    res.respond(200, {});
   },
 };
 
@@ -1552,13 +1271,11 @@ api.clearMessages = {
  */
 api.markPmsRead = {
   method: 'POST',
-  middlewares: [authWithHeaders({ userFieldsToInclude: ['inbox'] })],
+  middlewares: [authWithHeaders()],
   url: '/user/mark-pms-read',
   async handler (req, res) {
-    const { user } = res.locals;
-    const markPmsResponse = common.ops.markPmsRead(user);
-    await user.save();
-    res.respond(200, markPmsResponse);
+    // Social/inbox features removed — no-op
+    res.respond(200, [0]);
   },
 };
 
@@ -1693,22 +1410,7 @@ api.togglePinnedItem = {
   method: 'GET',
   middlewares: [authWithHeaders()],
   url: '/user/toggle-pinned-item/:type/:path',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const path = get(req.params, 'path');
-    const type = get(req.params, 'type');
-
-    common.ops.pinnedGearUtils.togglePinnedItem(user, { type, path }, req);
-
-    await user.save();
-
-    const userJson = user.toJSON();
-
-    res.respond(200, {
-      pinnedItems: userJson.pinnedItems,
-      unpinnedItems: userJson.unpinnedItems,
-    });
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1734,60 +1436,7 @@ api.movePinnedItem = {
   method: 'POST',
   url: '/user/move-pinned-item/:path/move/to/:position',
   middlewares: [authWithHeaders()],
-  async handler (req, res) {
-    req.checkParams('path', res.t('taskIdRequired')).notEmpty();
-    req.checkParams('position', res.t('positionRequired')).notEmpty().isNumeric();
-
-    const validationErrors = req.validationErrors();
-    if (validationErrors) throw validationErrors;
-
-    const { user } = res.locals;
-    const { path } = req.params;
-    let position = Number(req.params.position);
-
-    // If something has been added or removed from the inAppRewards, we need
-    // to reset pinnedItemsOrder to have the correct length. Since inAppRewards
-    // Uses the current pinnedItemsOrder to return these in the right order,
-    // the new reset array will be in the right order before we do the swap
-    const currentPinnedItems = common.inAppRewards(user);
-    if (user.pinnedItemsOrder.length !== currentPinnedItems.length) {
-      user.pinnedItemsOrder = currentPinnedItems.map(item => item.path);
-    }
-
-    const officialItems = common.getOfficialPinnedItems(user);
-
-    const itemExistInPinnedArray = user.pinnedItems.findIndex(item => item.path === path);
-    const itemExistInOfficialItems = officialItems.findIndex(item => item.path === path);
-
-    if (itemExistInPinnedArray === -1 && itemExistInOfficialItems === -1) {
-      throw new BadRequest(res.t('wrongItemPath', { path }, req.language));
-    }
-
-    // Adjust the order
-    const currentIndex = user.pinnedItemsOrder.findIndex(item => item === path);
-    const currentPinnedItemPath = user.pinnedItemsOrder[currentIndex];
-
-    if (currentIndex !== -1) {
-      // Remove the one we will move
-      user.pinnedItemsOrder.splice(currentIndex, 1);
-    } else {
-      // usually the array would be already fixed by the inAppRewards call
-      // but it seems something didn't work out
-      position = Math.min(position, user.pinnedItemsOrder.length - 1);
-    }
-
-    // reinsert the item in position (or just at the end)
-    if (position === -1) {
-      user.pinnedItemsOrder.push(currentPinnedItemPath);
-    } else {
-      user.pinnedItemsOrder.splice(position, 0, currentPinnedItemPath);
-    }
-
-    await user.save();
-    const userJson = user.toJSON();
-
-    res.respond(200, userJson.pinnedItemsOrder);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -1804,11 +1453,8 @@ api.statSync = {
   middlewares: [authWithHeaders()],
   url: '/user/stat-sync',
   async handler (req, res) {
-    const { user } = res.locals;
-    common.fns.updateStats(user, user.stats);
-    await user.save();
-
-    res.respond(200, user);
+    // Gamification removed — no stats to sync
+    res.respond(200, {});
   },
 };
 

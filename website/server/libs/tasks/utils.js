@@ -26,7 +26,7 @@ export function syncableAttrs (task) {
   const t = task.toObject(); // lodash doesn't seem to like _.omit on Document
   // only sync/compare important attrs
   const omitAttrs = ['_id', 'userId', 'challenge', 'history', 'tags', 'completed', 'streak', 'notes', 'updatedAt', 'createdAt', 'group', 'checklist', 'attribute'];
-  if (t.type !== 'reward') omitAttrs.push('value');
+  omitAttrs.push('value');
   return _.omit(t, omitAttrs);
 }
 

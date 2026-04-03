@@ -228,18 +228,16 @@
         <task-column
           v-for="column in columns"
           :key="column"
-          class="col-lg-3 col-md-6"
+          class="col-lg-4 col-md-6"
           :type="column"
           :is-user="true"
           :search-text="searchTextThrottled"
           :selected-tags="selectedTags"
           @editTask="editTask"
           @taskSummary="taskSummary"
-          @openBuyDialog="openBuyDialog($event)"
         />
       </div>
     </div>
-    <spells />
   </div>
 </template>
 
@@ -406,7 +404,6 @@ import taskDefaults from '@/../../common/script/libs/taskDefaults';
 import TaskColumn from './column';
 import TaskModal from './taskModal';
 import TaskSummary from './taskSummary';
-import spells from './spells';
 import markdown from '@/directives/markdown';
 
 import positiveIcon from '@/assets/svg/positive.svg?raw';
@@ -415,7 +412,6 @@ import deleteIcon from '@/assets/svg/delete.svg?raw';
 import habitIcon from '@/assets/svg/habit.svg?raw';
 import dailyIcon from '@/assets/svg/daily.svg?raw';
 import todoIcon from '@/assets/svg/todo.svg?raw';
-import rewardIcon from '@/assets/svg/reward.svg?raw';
 import dragIcon from '@/assets/svg/drag_indicator.svg?raw';
 
 import { mapState, mapActions } from '@/libs/store';
@@ -427,7 +423,6 @@ export default {
     TaskColumn,
     TaskModal,
     TaskSummary,
-    spells,
     brokenTaskModal,
     draggable,
   },
@@ -437,7 +432,7 @@ export default {
   mixins: [autoCompleteHelperMixin],
   data () {
     return {
-      columns: ['habit', 'daily', 'todo', 'reward'],
+      columns: ['habit', 'daily', 'todo'],
       searchText: null,
       searchTextThrottled: null,
       isFilterPanelOpen: false,
@@ -449,7 +444,6 @@ export default {
         habit: habitIcon,
         daily: dailyIcon,
         todo: todoIcon,
-        reward: rewardIcon,
         drag: dragIcon,
       }),
       selectedTags: [],
@@ -671,9 +665,6 @@ export default {
       const tagId = tag.id;
       if (this.temporarilySelectedTags.indexOf(tagId) !== -1) return true;
       return false;
-    },
-    openBuyDialog (item) {
-      this.$root.$emit('buyModal::showItem', item);
     },
   },
 };

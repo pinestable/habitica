@@ -1,8 +1,6 @@
 import { authWithHeaders } from '../../middlewares/auth';
 import * as userLib from '../../libs/user';
 import { verifyDisplayName } from '../../libs/user/validation';
-import common from '../../../common';
-import { TransactionModel as Transaction } from '../../models/transaction';
 import { BadRequest, NotAuthorized } from '../../libs/errors';
 import * as passwordUtils from '../../libs/password';
 
@@ -228,10 +226,7 @@ api.userReset = {
     if (user.auth.local.hashed_password && user.auth.local.email) {
       const isValidPassword = await passwordUtils.compare(user, password);
       if (!isValidPassword) throw new NotAuthorized(res.t('wrongPassword'));
-    } else if (
-      (user.auth.facebook.id || user.auth.google.id || user.auth.apple.id)
-      && password !== RESET_CONFIRMATION
-    ) {
+    } else if (password !== RESET_CONFIRMATION) {
       throw new NotAuthorized(res.t('incorrectResetPhrase', { magicWord: RESET_CONFIRMATION }));
     }
 
@@ -293,12 +288,7 @@ api.unequip = {
   method: 'POST',
   middlewares: [authWithHeaders()],
   url: '/user/unequip/:type',
-  async handler (req, res) {
-    const { user } = res.locals;
-    const equipRes = common.ops.unEquipByType(user, req);
-    await user.save();
-    res.respond(200, ...equipRes);
-  },
+  async handler () { throw new NotAuthorized('Gamification features have been removed'); },
 };
 
 /**
@@ -312,9 +302,8 @@ api.purchaseHistory = {
   middlewares: [authWithHeaders()],
   url: '/user/purchase-history',
   async handler (req, res) {
-    const { user } = res.locals;
-    const transactions = await Transaction.find({ userId: user._id }).sort({ createdAt: -1 });
-    res.respond(200, transactions);
+    // Gamification/payment removed — no purchase history
+    res.respond(200, []);
   },
 };
 

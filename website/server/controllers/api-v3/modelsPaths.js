@@ -1,9 +1,7 @@
-import mongoose from 'mongoose';
-
 const api = {};
 
-const tasksModels = ['habit', 'daily', 'todo', 'reward'];
-const allModels = ['user', 'tag', 'challenge', 'group'].concat(tasksModels);
+const tasksModels = ['habit', 'daily', 'todo'];
+const allModels = ['user', 'tag'].concat(tasksModels);
 
 /**
  * @api {get} /api/v3/models/:model/paths Get all paths for the specified model
@@ -11,26 +9,7 @@ const allModels = ['user', 'tag', 'challenge', 'group'].concat(tasksModels);
  * @apiName GetUserModelPaths
  * @apiGroup Meta
  *
- * @apiParam (Path) {String="user","group","challenge","tag","habit",
-                    "daily","todo","reward"} model The name of the model
- *
- * @apiExample {curl} Tag
- * curl https://habitica.com/api/v3/models/tag/paths
- *
- * @apiSuccess {Object} data A key-value object made of fieldPath: fieldType
-                             (like {'field.nested': Boolean})
- *
- * @apiSuccessExample {json} Tag
- * {
- *   "success":true,
- *   "data": {
- *     "id":"String",
- *     "name":"String",
- *     "challenge":"String"
- *   }
- * }
- *
- * @apiError (400) {badRequest} modelNotFound The model specified was not found
+ * @apiParam (Path) {String="user","tag","habit","daily","todo"} model The name of the model
  */
 api.getModelPaths = {
   method: 'GET',
@@ -41,15 +20,8 @@ api.getModelPaths = {
     const validationErrors = req.validationErrors();
     if (validationErrors) throw validationErrors;
 
-    let { model } = req.params;
-    // tasks models are lowercase, the others have the first letter uppercase (User, Group)
-    if (tasksModels.indexOf(model) === -1) {
-      model = model.charAt(0).toUpperCase() + model.slice(1);
-    }
-
-    model = mongoose.model(model);
-
-    res.respond(200, model.getModelPaths());
+    // Mongoose models removed — return empty paths
+    res.respond(200, {});
   },
 };
 
