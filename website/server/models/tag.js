@@ -1,51 +1,54 @@
-import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
-import validator from 'validator';
-import baseModel from '../libs/baseModel';
+import { prisma } from '../libs/prisma';
 
-const { Schema } = mongoose;
+// Thin Prisma wrapper for tags
 
-export const schema = new Schema({
-  id: {
-    $type: String,
-    default: uuid,
-    validate: [v => validator.isUUID(v), 'Invalid uuid for tag.'],
-    required: true,
+export class TagDocument {
+  constructor (data) {
+    this.id = data.id;
+    this._id = data.id;
+    this.name = data.name;
+    this.userId = data.userId;
+  }
+
+  toJSON () {
+    return {
+      id: this.id, _id: this.id, name: this.name, userId: this.userId,
+    };
+  }
+}
+
+export const model = {
+  async find (where = {}) {
+    const rows = await prisma.tag.findMany({ where });
+    return rows.map(r => new TagDocument(r));
   },
-  name: { $type: String, required: true },
-  challenge: { $type: Boolean },
-  group: { $type: String },
-}, {
-  strict: true,
-  minimize: false, // So empty objects are returned
-  _id: false, // use id instead of _id
-  typeKey: '$type', // So that we can use fields named `type`
-});
 
-schema.plugin(baseModel, {
-  noSet: ['_id', 'challenge', 'group'],
-  _id: false, // use id instead of _id
-});
+  async findOne (where) {
+    const row = await prisma.tag.findFirst({ where });
+    return row ? new TagDocument(row) : null;
+  },
 
-// A list of additional fields that cannot be updated (but can be set on creation)
-const noUpdate = ['id'];
-schema.statics.sanitizeUpdate = function sanitizeUpdate (updateObj) {
-  return this.sanitize(updateObj, noUpdate);
+  async create (data) {
+    const row = await prisma.tag.create({ data: { id: data.id || uuid(), ...data } });
+    return new TagDocument(row);
+  },
+
+  async deleteOne (where) {
+    await prisma.tag.deleteMany({ where });
+  },
+
+  async updateOne (where, data) {
+    await prisma.tag.updateMany({ where, data });
+  },
+
+  // Sanitise update: only allow name changes
+  sanitizeUpdate (obj) {
+    const out = {};
+    if (obj.name !== undefined) out.name = obj.name;
+    return out;
+  },
 };
 
-/**
- * Remove invalid data from an array of tags.
- * Fix for https://github.com/HabitRPG/habitica/issues/10688
- * Called by user's post init hook (models/user/hooks.js)
- */
-schema.statics.cleanupCorruptData = function cleanupCorruptTagsData (tags) {
-  if (!tags) return tags;
-
-  return tags.filter(tag => {
-    // Exclude tags with a nullish value or no id
-    if (!tag || !tag.id || !tag.name) return false;
-    return true;
-  });
-};
-
-export const model = mongoose.model('Tag', schema);
+// For backward-compat with `import { schema } from '../tag'`
+export const schema = { paths: {} };

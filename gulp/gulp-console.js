@@ -25,7 +25,6 @@ const improveRepl = context => {
     },
   });
 
-  context.Challenge = require('../website/server/models/challenge').model; // eslint-disable-line global-require
   context.Group = require('../website/server/models/group').model; // eslint-disable-line global-require
   context.User = require('../website/server/models/user').model; // eslint-disable-line global-require
 

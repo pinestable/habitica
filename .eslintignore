@@ -15,3 +15,21 @@ node_modules/
 
 # Old migrations, disabled
 migrations/archive/*
+migrations/challenges/*
+
+# Tests for removed features
+test/api/unit/libs/payments/amazon/
+test/api/unit/libs/payments/group-plans/
+test/api/unit/libs/payments/payments.test.js
+test/api/unit/libs/pushNotifications.test.js
+test/api/unit/libs/slack.js
+test/api/unit/middlewares/blocker.test.js
+test/api/unit/models/challenge.test.js
+test/api/unit/models/task.test.js
+test/api/unit/models/user.test.js
+test/api/v3/integration/analytics/POST-analytics_track_eventName.test.js
+test/api/v3/integration/chat/POST-chat.flag.test.js
+test/api/v3/integration/chat/POST-chat.test.js
+test/api/v3/integration/chat/POST-groups_id_chat_id_clear_flags.test.js
+test/api/v3/integration/members/POST-members_memberId_flag.js
+test/api/v3/integration/user/POST-user_sleep.test.js

@@ -9,16 +9,15 @@ const BCRYPT_SALT_ROUNDS = 10;
 
 // Hash a plain text password
 export function bcryptHash (passwordToHash) {
-  return bcrypt.hash(passwordToHash, BCRYPT_SALT_ROUNDS); // returns a promise
+  return bcrypt.hash(passwordToHash, BCRYPT_SALT_ROUNDS);
 }
 
 // Check if a plain text password matches a hash
 export function bcryptCompare (passwordToCheck, hashedPassword) {
-  return bcrypt.compare(passwordToCheck, hashedPassword); // returns a promise
+  return bcrypt.compare(passwordToCheck, hashedPassword);
 }
 
 // Return the encrypted version of a password (using sha1) given a salt
-// Used for legacy passwords that have not yet been migrated to bcrypt
 export function sha1Encrypt (password, salt) {
   return crypto
     .createHmac('sha1', salt)
@@ -34,64 +33,51 @@ export function sha1MakeSalt (len = 10) {
     .substring(0, len);
 }
 
-// Compare the password for an user
-// Works with bcrypt and sha1 independently
-// An async function is used so that a promise is always returned
-// even for comparing sha1 hashed passwords that use a sync method
+// Compare the password for a user. Works with bcrypt and sha1.
 export async function compare (user, passwordToCheck) {
   if (!user || !passwordToCheck) throw new Error('user and passwordToCheck are required parameters.');
 
-  const { passwordHashMethod } = user.auth.local;
-  const passwordHash = user.auth.local.hashed_password;
-  const passwordSalt = user.auth.local.salt; // Only used for SHA1
+  const { passwordHashMethod, hashedPassword: passwordHash, salt: passwordSalt } = user;
 
   if (passwordHashMethod === 'bcrypt') {
     return bcryptCompare(passwordToCheck, passwordHash);
-  // default to sha1 if the user has a salt but no passwordHashMethod
-  } if (passwordHashMethod === 'sha1' || (!passwordHashMethod && passwordSalt)) {
+  }
+  if (passwordHashMethod === 'sha1' || (!passwordHashMethod && passwordSalt)) {
     return passwordHash === sha1Encrypt(passwordToCheck, passwordSalt);
   }
   throw new Error('Invalid password hash method.');
 }
 
-// Convert an user to use bcrypt from sha1 for password hashing
-// needs to save the user separately.
-// NOTE: before calling this method it should be verified that the supplied plain text password
-// is indeed hashed with sha1 and is valid
+// Convert a user to use bcrypt from sha1 for password hashing.
+// Caller must save the user separately.
 export async function convertToBcrypt (user, plainTextPassword) {
   if (!user || !plainTextPassword) throw new Error('user and plainTextPassword are required parameters.');
 
-  user.auth.local.salt = undefined;
-  user.auth.local.passwordHashMethod = 'bcrypt';
-  user.auth.local.hashed_password = await bcryptHash(plainTextPassword); // eslint-disable-line camelcase, max-len
+  user.salt = undefined;
+  user.passwordHashMethod = 'bcrypt';
+  user.hashedPassword = await bcryptHash(plainTextPassword);
 }
 
 // Returns the user if a valid password reset code is supplied, otherwise false
 export async function validatePasswordResetCodeAndFindUser (code) {
   let isCodeValid = true;
-
   let userId;
   let user;
-  let decryptedPasswordResetCode;
 
-  // wrapping the code in a try to be able to handle the error here
   try {
-    decryptedPasswordResetCode = JSON.parse(decrypt(code || 'invalid')); // also catches missing code
-    userId = decryptedPasswordResetCode.userId;
-    const { expiresAt } = decryptedPasswordResetCode;
-
-    if (moment(expiresAt).isBefore(moment())) throw new Error();
-  } catch (err) {
+    const decrypted = JSON.parse(decrypt(code || 'invalid'));
+    userId = decrypted.userId;
+    const { expiresAt } = decrypted;
+    if (moment(expiresAt).isBefore(moment())) throw new Error('expired');
+  } catch (_) {
     isCodeValid = false;
   }
 
   if (isCodeValid) {
-    user = await User.findById(userId).exec();
-    // check if user is found
+    user = await User.findById(userId);
     if (!user) {
       isCodeValid = false;
-    } else if (code !== user.auth.local.passwordResetCode) {
-      // Make sure only the last code can be used
+    } else if (code !== user.passwordResetCode) {
       isCodeValid = false;
     }
   }

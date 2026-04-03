@@ -3,7 +3,7 @@ import nconf from 'nconf';
 import moment from 'moment';
 import util from 'util';
 import _ from 'lodash';
-import paypalIpn from 'pp-ipn';
+// pp-ipn removed
 import paypal from 'paypal-rest-sdk';
 import cc from 'coupon-code';
 import logger from '../logger';
@@ -75,7 +75,7 @@ api.paypalBillingAgreementGet = util
 api.paypalBillingAgreementCancel = util
   .promisify(paypal.billingAgreement.cancel.bind(paypal.billingAgreement));
 
-api.ipnVerifyAsync = util.promisify(paypalIpn.verify.bind(paypalIpn));
+api.ipnVerifyAsync = async () => {}; // pp-ipn removed
 
 api.checkout = async function checkout (options = {}) {
   const {

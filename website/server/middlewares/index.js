@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import nconf from 'nconf';
 import morgan from 'morgan';
 import cookieSession from 'cookie-session';
-import mongoose from 'mongoose';
 import compression from 'compression';
 import methodOverride from 'method-override';
 import passport from 'passport';
@@ -14,11 +13,9 @@ import errorHandler from './errorHandler';
 import notFoundHandler from './notFound';
 import cors from './cors';
 import staticMiddleware from './static';
-import domainMiddleware from './domain';
 // import favicon from 'serve-favicon';
 // import path from 'path';
 import maintenanceMode from './maintenanceMode';
-import { ENABLE_CLUSTER } from '../libs/config';
 import {
   forceSSL,
   forceHabitica,
@@ -48,7 +45,7 @@ const DISABLE_BASE_URL_ENFORCEMENT = nconf.get('DISABLE_BASE_URL_ENFORCEMENT') =
 const SESSION_SECRET = nconf.get('SESSION_SECRET');
 const TEN_YEARS = 1000 * 60 * 60 * 24 * 365 * 10;
 
-export default function attachMiddlewares (app, server) {
+export default function attachMiddlewares (app) {
   setupExpress(app);
 
   if (LOG_REQUESTS_EXCESSIVE_MODE) {
@@ -57,10 +54,6 @@ export default function attachMiddlewares (app, server) {
 
   if (SLOW_REQUEST_THRESHOLD > 0) {
     app.use(logSlowRequests);
-  }
-
-  if (ENABLE_CLUSTER) {
-    app.use(domainMiddleware(server, mongoose));
   }
 
   if (!IS_PROD && !DISABLE_LOGGING) app.use(morgan('dev'));

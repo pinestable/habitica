@@ -3,3 +3,4 @@ import mongoose from 'mongoose';
 
 export const schema = new mongoose.Schema({});
 export const model = mongoose.model('Transaction', schema);
+export const TransactionModel = model;

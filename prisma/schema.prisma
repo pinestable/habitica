@@ -1,0 +1,93 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  apiToken           String    @unique @default(uuid())
+  email              String    @unique
+  username           String    @unique
+  lowerCaseUsername  String    @unique
+  hashedPassword     String
+  salt               String?
+  passwordHashMethod String    @default("bcrypt")
+  passwordResetCode  String?
+  name               String    @default("")
+  dayStart           Int       @default(0)
+  timezoneOffset     Int       @default(0)
+  timezoneOffsetAtLastCron Int @default(0)
+  sleep              Boolean   @default(false)
+  language           String    @default("en")
+  dateFormat         String    @default("MM/DD/YYYY")
+  tasksOrderHabits   String    @default("[]")
+  tasksOrderDailys   String    @default("[]")
+  tasksOrderTodos    String    @default("[]")
+  lastCron           DateTime?
+  cronSignature      String    @default("NOT_RUNNING")
+  cronCount          Int       @default(0)
+  isAdmin            Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  loggedInAt         DateTime?
+  tasks              Task[]
+  tags               Tag[]
+  notifications      Notification[]
+}
+
+model Task {
+  id                String    @id @default(uuid())
+  type              String
+  text              String
+  notes             String    @default("")
+  alias             String?
+  value             Float     @default(0)
+  priority          Float     @default(1)
+  tags              String    @default("[]")
+  checklist         String    @default("[]")
+  collapseChecklist Boolean   @default(false)
+  up                Boolean   @default(true)
+  down              Boolean   @default(true)
+  counterUp         Int       @default(0)
+  counterDown       Int       @default(0)
+  frequency         String    @default("daily")
+  everyX            Int       @default(1)
+  startDate         DateTime?
+  repeat            String    @default("{\"m\":true,\"t\":true,\"w\":true,\"th\":true,\"f\":true,\"s\":false,\"su\":false}")
+  daysOfMonth       String    @default("[]")
+  weeksOfMonth      String    @default("[]")
+  streak            Int       @default(0)
+  completed         Boolean   @default(false)
+  isDue             Boolean   @default(false)
+  nextDue           String    @default("[]")
+  yesterDaily       Boolean   @default(true)
+  dueDate           DateTime?
+  dateCompleted     DateTime?
+  history           String    @default("[]")
+  byHabitica        Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id     String @id @default(uuid())
+  name   String
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  type      String
+  data      String   @default("{}")
+  seen      Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}

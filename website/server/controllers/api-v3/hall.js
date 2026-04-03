@@ -179,7 +179,7 @@ api.getHero = {
     // if we didn't pass minimize: true it would have returned all fields as empty
     if (!heroRes.contributor) heroRes.contributor = {};
 
-    heroRes.secret=hero.secret;
+    heroRes.secret = hero.secret;
     heroRes.profile.flags = hero.getFlagData();
 
     res.respond(200, heroRes);
@@ -461,7 +461,7 @@ api.updateHero = {
     }
 
     if (updateData.changeApiToken) {
-      hero.apiToken=comm();
+      hero.apiToken = common.uuid();
     }
 
     if (updateData.resetCron) {
@@ -474,7 +474,7 @@ api.updateHero = {
     const savedHero = await hero.save();
 
     const heroJSON = savedHero.toJSON();
-    heroJSON.secret=savedHero.secret;
+    heroJSON.secret = savedHero.secret;
     const responseHero = { _id: heroJSON._id }; // only respond with important fields
     heroAdminFieldsToShow.split(' ').forEach(field => {
       _.set(responseHero, field, _.get(heroJSON, field));

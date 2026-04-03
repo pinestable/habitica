@@ -19,8 +19,6 @@ import {
 import {
   createTasks,
   getTasks,
-  getGroupFromTaskAndUser,
-  getChallengeFromTask,
   scoreTasks,
   verifyTaskModification,
 } from '../../libs/tasks';
@@ -613,8 +611,8 @@ api.updateTask = {
       throw new NotFound(res.t('messageTaskNotFound'));
     }
 
-    const group = await getGroupFromTaskAndUser(task, user);
-    const challenge = await getChallengeFromTask(task);
+    const group = null; // groups removed
+    const challenge = null; // challenges removed
     // Verify that the user can modify the task.
     if (!task) {
       throw new NotFound(res.t('messageTaskNotFound'));
@@ -821,8 +819,8 @@ api.moveTask = {
       throw new NotFound(res.t('messageTaskNotFound'));
     }
 
-    const group = await getGroupFromTaskAndUser(task, user);
-    const challenge = await getChallengeFromTask(task);
+    const group = null; // groups removed
+    const challenge = null; // challenges removed
     if (task.group.id && !task.userId) {
       if (!group || (user.guilds.indexOf(group._id) === -1 && user.party._id !== group._id)) {
         throw new NotFound(res.t('groupNotFound'));
@@ -920,8 +918,8 @@ api.addChecklistItem = {
       throw new NotFound(res.t('messageTaskNotFound'));
     }
 
-    const group = await getGroupFromTaskAndUser(task, user);
-    const challenge = await getChallengeFromTask(task);
+    const group = null; // groups removed
+    const challenge = null; // challenges removed
     verifyTaskModification(task, user, group, challenge, res);
 
     if (task.type !== 'daily' && task.type !== 'todo') throw new BadRequest(res.t('checklistOnlyDailyTodo'));
@@ -1031,8 +1029,8 @@ api.updateChecklistItem = {
       throw new NotFound(res.t('messageTaskNotFound'));
     }
 
-    const group = await getGroupFromTaskAndUser(task, user);
-    const challenge = await getChallengeFromTask(task);
+    const group = null; // groups removed
+    const challenge = null; // challenges removed
     verifyTaskModification(task, user, group, challenge, res);
     if (task.type !== 'daily' && task.type !== 'todo') throw new BadRequest(res.t('checklistOnlyDailyTodo'));
 
@@ -1092,8 +1090,8 @@ api.removeChecklistItem = {
       throw new NotFound(res.t('messageTaskNotFound'));
     }
 
-    const group = await getGroupFromTaskAndUser(task, user);
-    const challenge = await getChallengeFromTask(task);
+    const group = null; // groups removed
+    const challenge = null; // challenges removed
     verifyTaskModification(task, user, group, challenge, res);
     if (task.type !== 'daily' && task.type !== 'todo') throw new BadRequest(res.t('checklistOnlyDailyTodo'));
 
@@ -1421,8 +1419,8 @@ api.deleteTask = {
     if (!task) {
       throw new NotFound(res.t('messageTaskNotFound'));
     }
-    const group = await getGroupFromTaskAndUser(task, user);
-    const challenge = await getChallengeFromTask(task);
+    const group = null; // groups removed
+    const challenge = null; // challenges removed
     verifyTaskModification(task, user, group, challenge, res);
 
     if (task.group.id && !task.userId) {
