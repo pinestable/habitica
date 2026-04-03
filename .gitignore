@@ -49,3 +49,6 @@ webpack.webstorm.config
 mongodb-*.tgz
 /mongodb-*
 /.nyc_output
+
+# SQLite database
+*.db

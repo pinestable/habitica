@@ -1,0 +1,10 @@
+ignore:
+  - test/api/unit/libs/payments/amazon/**
+  - test/api/unit/libs/payments/group-plans/**
+  - test/api/unit/libs/payments/payments.test.js
+  - test/api/unit/libs/pushNotifications.test.js
+  - test/api/unit/libs/slack.js
+  - test/api/unit/middlewares/blocker.test.js
+  - test/api/unit/models/challenge.test.js
+  - test/api/unit/models/task.test.js
+  - test/api/unit/models/user.test.js
