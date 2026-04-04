@@ -85,7 +85,7 @@ export class TaskDocument {
     const data = encodeJsonFields(
       Object.fromEntries(
         TASK_PRISMA_FIELDS
-          .filter(f => f !== 'id' && f !== 'createdAt')
+          .filter(f => f !== 'id' && f !== 'createdAt' && f !== 'updatedAt')
           .map(f => [f, this[f]]),
       ),
     );
@@ -187,22 +187,16 @@ export const Task = {
     return row ? new TaskDocument(row) : null;
   },
 
-  async findByIdOrAlias (identifier, userId, extraQuery) {
+  async findByIdOrAlias (identifier, userId) {
     if (!identifier) return null;
+    // Always scope to userId to prevent cross-user access
     const where = {
+      userId,
       OR: [
         { id: identifier },
-        { alias: identifier, userId },
+        { alias: identifier },
       ],
     };
-    if (extraQuery) {
-      Object.entries(extraQuery).forEach(([k, v]) => {
-        if (k === 'userId') {
-          // already scoped above for alias; add for id too
-          where.OR[0].userId = v;
-        }
-      });
-    }
     const row = await prisma.task.findFirst({ where });
     return row ? new TaskDocument(row) : null;
   },
