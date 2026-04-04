@@ -46,6 +46,23 @@ export class TaskDocument {
     this._id = this.id;
     this._dirty = new Set();
 
+    // Apply Prisma-schema defaults for fields that were not provided
+    if (this.notes == null) this.notes = '';
+    if (this.value == null) this.value = 0;
+    if (this.priority == null) this.priority = 1;
+    if (this.collapseChecklist == null) this.collapseChecklist = false;
+    if (this.up == null) this.up = true;
+    if (this.down == null) this.down = true;
+    if (this.counterUp == null) this.counterUp = 0;
+    if (this.counterDown == null) this.counterDown = 0;
+    if (this.frequency == null) this.frequency = 'daily';
+    if (this.everyX == null) this.everyX = 1;
+    if (this.streak == null) this.streak = 0;
+    if (this.completed == null) this.completed = false;
+    if (this.isDue == null) this.isDue = false;
+    if (this.yesterDaily == null) this.yesterDaily = true;
+    if (this.byHabitica == null) this.byHabitica = false;
+
     // Stubs for stripped group/challenge features — prevents crashes on guard checks
     this.group = this.group || { id: null, assignedDate: null, assignedUsers: [] };
     this.challenge = this.challenge || { id: null, broken: null };
@@ -167,6 +184,26 @@ export const Task = {
   async findById (id) {
     if (!id) return null;
     const row = await prisma.task.findUnique({ where: { id } });
+    return row ? new TaskDocument(row) : null;
+  },
+
+  async findByIdOrAlias (identifier, userId, extraQuery) {
+    if (!identifier) return null;
+    const where = {
+      OR: [
+        { id: identifier },
+        { alias: identifier, userId },
+      ],
+    };
+    if (extraQuery) {
+      Object.entries(extraQuery).forEach(([k, v]) => {
+        if (k === 'userId') {
+          // already scoped above for alias; add for id too
+          where.OR[0].userId = v;
+        }
+      });
+    }
+    const row = await prisma.task.findFirst({ where });
     return row ? new TaskDocument(row) : null;
   },
 
