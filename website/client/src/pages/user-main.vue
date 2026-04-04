@@ -76,6 +76,7 @@ import AppFooter from '@/components/appFooter';
 import { mapState } from '@/libs/store';
 import * as Analytics from '@/libs/analytics';
 import notifications from '@/mixins/notifications';
+import { startReminderNotifications } from '@/libs/reminderNotifications';
 import externalLinkModal from '@/components/externalLinkModal.vue';
 import deleteTaskConfirmModal from '@/components/tasks/deleteTaskConfirmModal.vue';
 
@@ -144,6 +145,18 @@ export default {
     // Remove the index.html loading screen and now show the inapp loading
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) document.body.removeChild(loadingScreen);
+
+    // Start browser reminder notifications
+    startReminderNotifications(() => {
+      const store = this.$store;
+      // Combine all task types that have reminders
+      const tasks = store.state.tasks.data || {};
+      return [
+        ...(tasks.habits || []),
+        ...(tasks.dailys || []),
+        ...(tasks.todos || []),
+      ];
+    });
   },
   methods: {
     hideLoadingScreen () {

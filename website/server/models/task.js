@@ -3,14 +3,14 @@ import { prisma } from '../libs/prisma';
 
 export const tasksTypes = ['habit', 'daily', 'todo'];
 
-const JSON_FIELDS = ['checklist', 'tags', 'history', 'repeat', 'daysOfMonth', 'weeksOfMonth', 'nextDue'];
+const JSON_FIELDS = ['checklist', 'tags', 'history', 'repeat', 'daysOfMonth', 'weeksOfMonth', 'nextDue', 'reminders'];
 
 const TASK_PRISMA_FIELDS = [
   'id', 'type', 'text', 'notes', 'alias', 'value', 'priority', 'tags',
   'checklist', 'collapseChecklist', 'up', 'down', 'counterUp', 'counterDown',
   'frequency', 'everyX', 'startDate', 'repeat', 'daysOfMonth', 'weeksOfMonth',
   'streak', 'completed', 'isDue', 'nextDue', 'yesterDaily', 'dueDate',
-  'dateCompleted', 'history', 'byHabitica', 'createdAt', 'updatedAt', 'userId',
+  'dateCompleted', 'history', 'reminders', 'byHabitica', 'createdAt', 'updatedAt', 'userId',
 ];
 
 // Fields that callers cannot set via sanitize()

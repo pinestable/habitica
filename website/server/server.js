@@ -12,6 +12,7 @@ import attachMiddlewares from './middlewares/index';
 import './libs/setupPassport';
 
 import SERVER_STATUS from './libs/serverStatus';
+import { startReminderChecker } from './libs/reminders';
 
 const server = http.createServer();
 const app = express();
@@ -31,6 +32,7 @@ server.on('request', app);
 server.listen(app.get('port'), () => {
   logger.info(`Express server listening on port ${app.get('port')}`);
   SERVER_STATUS.EXPRESS = true;
+  startReminderChecker();
 });
 
 export default server;

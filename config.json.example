@@ -69,6 +69,8 @@
   "PUSH_CONFIGS_APN_TEAM_ID": "aaabbbcccd",
   "PUSH_CONFIGS_FCM_SERVER_API_KEY": "aaabbbcccd",
   "RATE_LIMITER_ENABLED": "false",
+  "RESEND_API_KEY": "",
+  "RESEND_FROM_EMAIL": "reminders@yourdomain.com",
   "REDIS_HOST": "aaabbbcccdddeeefff",
   "REDIS_PASSWORD": "12345678",
   "REDIS_PORT": "1234",
